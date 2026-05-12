@@ -1,5 +1,18 @@
 # Changelog
 
+# [1.1.0](https://github.com/ncac/php-cognitive-complexity/compare/v1.0.0...v1.1.0) (2026-05-12)
+
+
+### feat
+
+* add analyse command with severity levels, --all, --sort, --ext ([](https://github.com/ncac/php-cognitive-complexity/commit/f57d3aa3504ac4e3b96f626b841ce8414a2c34ae))
+* **bin:** add cc shell wrapper with auto check default and sub-command passthrough ([](https://github.com/ncac/php-cognitive-complexity/commit/bf4650acabdddf3a17b3d105f8f2147fd94ea9a1))
+
+
+### test
+
+* cover Config::getExtensions and Application command registration ([](https://github.com/ncac/php-cognitive-complexity/commit/393ea950fb4ef53a7499787c2afb841efdc0b417))
+
 All notable changes to this project will be documented in this file.
 
 The format is based on [Conventional Commits](https://www.conventionalcommits.org/)
@@ -36,4 +49,3 @@ Full implementation of the [SonarSource Cognitive Complexity white paper](https:
 - GitHub Actions CI (Psalm, PHPCS, PHPUnit, Codecov)
 
 [1.0.0]: https://github.com/NCAC/php-cognitive-complexity/releases/tag/v1.0.0
-
