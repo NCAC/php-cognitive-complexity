@@ -1,7 +1,7 @@
 {
   "name": "ncac/php-cognitive-complexity",
   "description": "CLI tool for measuring PHP cognitive complexity (ISO SonarQube) — integrates with CI/CD pipelines and Husky pre-commit hooks",
-  "type": "project",
+  "type": "library",
   "keywords": [
     "cognitive-complexity",
     "php",
