@@ -1,0 +1,40 @@
+#!/usr/bin/env sh
+# cc — short wrapper around cognitive-complexity
+#
+# Usage:
+#   cc <path> [options]                    → check (CI gate, exit 1 on violation)
+#   cc analyse <path> [options]            → analyse (DX mode, exit 0 always)
+#   cc baseline <path> [options]           → baseline generation
+#
+# Examples:
+#   cc src/                                check with default threshold (15)
+#   cc src/ --max=20                       custom threshold
+#   cc src/ --diff                         git-modified files only (pre-commit)
+#   cc analyse src/ --all                  show all functions
+#   cc analyse src/ --sort=score           sort by score descending
+#   cc analyse web/ --ext=php,module,inc   multi-extension (Drupal)
+#   cc baseline src/ --output=baseline.json
+
+set -e
+
+# Resolve the real cognitive-complexity binary regardless of where cc lives
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+BINARY="$SCRIPT_DIR/cognitive-complexity"
+
+# Also handle the case where cc is called from vendor/bin (symlink)
+if [ ! -f "$BINARY" ]; then
+  BINARY="$(dirname "$SCRIPT_DIR")/bin/cognitive-complexity"
+fi
+
+if [ ! -f "$BINARY" ]; then
+  echo "Error: cognitive-complexity binary not found." >&2
+  exit 127
+fi
+
+# If the first argument is a known sub-command, pass through as-is.
+# Otherwise inject 'check' as the default command.
+FIRST="${1:-}"
+case "$FIRST" in
+  check|analyse|baseline|list|help) exec php "$BINARY" "$@" ;;
+  *) exec php "$BINARY" check "$@" ;;
+esac

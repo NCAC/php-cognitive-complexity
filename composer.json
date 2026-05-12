@@ -54,7 +54,8 @@
     }
   },
   "bin": [
-    "bin/cognitive-complexity"
+    "bin/cognitive-complexity",
+    "bin/cc"
   ],
   "config": {
     "sort-packages": true,
