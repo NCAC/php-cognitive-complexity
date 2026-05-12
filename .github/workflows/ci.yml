@@ -50,7 +50,7 @@ jobs:
         run: composer install --prefer-dist --no-progress --no-interaction
 
       - name: Run PHPCS
-        run: vendor/bin/phpcs --standard=PSR12 src/ tests/
+        run: vendor/bin/phpcs
 
   phpunit:
     name: PHPUnit Tests (PHP ${{ matrix.php-version }})
