@@ -9,15 +9,20 @@ namespace NCAC\CognitiveComplexity\Config;
  */
 final class Config {
 
+  /** @var list<string> */
+  private const DEFAULT_EXTENSIONS = ['php'];
+
   /**
    * @param int                   $default_max        Default complexity threshold
    * @param array<string, int>    $path_thresholds   Per-path overrides (path => max)
    * @param list<string>          $excluded_paths    Paths to exclude from analysis
+   * @param list<string>          $extensions        File extensions to analyse
    */
   public function __construct(
     private readonly int $default_max,
     private readonly array $path_thresholds = [],
     private readonly array $excluded_paths = [],
+    private readonly array $extensions = self::DEFAULT_EXTENSIONS,
   ) {
   }
 
@@ -48,6 +53,13 @@ final class Config {
    */
   public function getExcludedPaths(): array {
     return $this->excluded_paths;
+  }
+
+  /**
+   * @return list<string>
+   */
+  public function getExtensions(): array {
+    return $this->extensions;
   }
 
 }
