@@ -33,7 +33,7 @@ jobs:
         run: vendor/bin/psalm --no-progress
 
   phpcs:
-    name: Code Style (PHPCS / PSR-12)
+    name: Code Style (PHPCS / NCAC)
     runs-on: ubuntu-latest
 
     steps:

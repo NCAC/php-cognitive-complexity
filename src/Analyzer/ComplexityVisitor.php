@@ -57,21 +57,14 @@ final class ComplexityVisitor extends NodeVisitorAbstract {
 
   /** @override */
   public function enterNode(Node $node): null|int|Node {
-    // ── Named function / method entry ────────────────────────────────────────
     if ($node instanceof Stmt\ClassMethod || $node instanceof Stmt\Function_) {
       $this->pushScope($node->name->toString(), $node->getStartLine());
 
       return null;
     }
 
-    // ── Closure / arrow function (Expr nodes) ────────────────────────────────
-    // Spec §2.2: nested functions / lambdas add +1 + nesting_bonus AND reset
-    // the nesting level for their own body.
     if ($node instanceof Node\Expr\Closure || $node instanceof Node\Expr\ArrowFunction) {
-      if ($this->insideFunction) {
-        $label = $node instanceof Node\Expr\ArrowFunction ? '{arrow_fn}' : '{closure}';
-        $this->pushScope($label . ':' . $node->getStartLine(), $node->getStartLine(), with_nesting_bonus: true);
-      }
+      $this->enterLambda($node);
 
       return null;
     }
@@ -80,63 +73,7 @@ final class ComplexityVisitor extends NodeVisitorAbstract {
       return null;
     }
 
-    // ── Nesting-incrementing structures ──────────────────────────────────────
-    if ($this->isNestingNode($node)) {
-      $this->currentScore += 1 + $this->nestingLevel;
-      $this->nestingLevel++;
-
-      return null;
-    }
-
-    // ── Continuation structures: +1 flat (spec §1.2) ─────────────────────────
-    if ($node instanceof Stmt\ElseIf_ || $node instanceof Stmt\Else_ || $node instanceof Stmt\Catch_) {
-      $this->currentScore++;
-
-      return null;
-    }
-
-    // ── Ternary: +1 flat ─────────────────────────────────────────────────────
-    if ($node instanceof Ternary) {
-      $this->currentScore++;
-
-      return null;
-    }
-
-    // ── Logical operator sequences (spec §1.4) ────────────────────────────────
-    // Each change of operator family (AND vs OR) starts a new sequence: +1.
-    // Consecutive same-family operators count as one sequence.
-    if ($this->isLogicalBinaryOp($node)) {
-      /** @var Node\Expr\BinaryOp $node */
-      $left = $node->left;
-      $same_family = ($this->isAndOp($node) && $this->isAndOp($left))
-      || ($this->isOrOp($node) && $this->isOrOp($left));
-
-      if (!$same_family) {
-        $this->currentScore++;
-      }
-
-      return null;
-    }
-
-    // ── Recursive call (spec §2.4): +1 flat ──────────────────────────────────
-    if ($this->isRecursiveCall($node)) {
-      $this->currentScore++;
-
-      return null;
-    }
-
-    // ── Jumps to labels (spec §2.3): break N, continue N, goto ───────────────
-    if ($node instanceof Stmt\Goto_) {
-      $this->currentScore++;
-
-      return null;
-    }
-
-    if (($node instanceof Stmt\Break_ || $node instanceof Stmt\Continue_) && $node->num !== null) {
-      $this->currentScore++;
-
-      return null;
-    }
+    $this->scoreNode($node);
 
     return null;
   }
@@ -186,6 +123,80 @@ final class ComplexityVisitor extends NodeVisitorAbstract {
    */
   public function getResults(): array {
     return $this->results;
+  }
+
+  /**
+   * Handle closure / arrow function entry (spec §2.2).
+   *
+   * @param Node\Expr\Closure|Node\Expr\ArrowFunction $node
+   */
+  private function enterLambda(Node $node): void {
+    if (!$this->insideFunction) {
+      return;
+    }
+
+    $label = $node instanceof Node\Expr\ArrowFunction ? '{arrow_fn}' : '{closure}';
+    $this->pushScope($label . ':' . $node->getStartLine(), $node->getStartLine(), with_nesting_bonus: true);
+  }
+
+  /**
+   * Dispatch scoring for nodes inside a function scope.
+   */
+  private function scoreNode(Node $node): void {
+    if ($this->isNestingNode($node)) {
+      $this->currentScore += 1 + $this->nestingLevel;
+      $this->nestingLevel++;
+
+      return;
+    }
+
+    if ($this->isContinuationNode($node) || $node instanceof Ternary) {
+      $this->currentScore++;
+
+      return;
+    }
+
+    if ($this->isLogicalBinaryOp($node)) {
+      $this->scoreLogicalOp($node);
+
+      return;
+    }
+
+    if ($this->isRecursiveCall($node) || $this->isLabelJump($node)) {
+      $this->currentScore++;
+    }
+  }
+
+  private function isContinuationNode(Node $node): bool {
+    return $node instanceof Stmt\ElseIf_
+    || $node instanceof Stmt\Else_
+    || $node instanceof Stmt\Catch_;
+  }
+
+  /**
+   * Score a logical binary operator: +1 on each family change (spec §1.4).
+   */
+  private function scoreLogicalOp(Node $node): void {
+    /** @var Node\Expr\BinaryOp $node */
+    $left = $node->left;
+    $same_family = ($this->isAndOp($node) && $this->isAndOp($left))
+    || ($this->isOrOp($node) && $this->isOrOp($left));
+
+    if (!$same_family) {
+      $this->currentScore++;
+    }
+  }
+
+  /**
+   * Returns true for goto and non-trivial break/continue (spec §2.3).
+   */
+  private function isLabelJump(Node $node): bool {
+    if ($node instanceof Stmt\Goto_) {
+      return true;
+    }
+
+    return ($node instanceof Stmt\Break_ || $node instanceof Stmt\Continue_)
+    && $node->num !== null;
   }
 
   /**
