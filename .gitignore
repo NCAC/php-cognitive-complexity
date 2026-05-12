@@ -1,0 +1,46 @@
+# ignore everything
+/*
+
+# except these files/folders
+!README.md
+!LICENSE
+!CHANGELOG.md
+!CONTRIBUTING.md
+!.editorconfig
+!.gitignore
+!.gitattributes
+!.github
+!.husky
+!.release-it.json
+!build.xml
+!package.json
+!composer.json
+!composer.lock
+!phpunit.xml
+!phpcs.xml
+!psalm.xml
+!codecov.yml
+!.php-cs-fixer.dist.php
+!.yamllint.yml
+!bin
+!src
+!tests
+!cognitive.yaml.example
+!.devcontainer.json
+!docker-compose.yml
+!.env.example
+!.docker
+.docker/php-logs/*
+!.docker/php-logs/.gitkeep
+!scripts
+
+# exclude generated/runtime files
+vendor/
+coverage/
+coverage-html/
+coverage-xml/
+coverage.xml
+junit.xml
+*.cache
+node_modules/
+.pnpm-store/

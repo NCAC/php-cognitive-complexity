@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<ruleset name="ncac-php-cognitive-complexity">
+  <description>Coding standard for ncac-php-cognitive-complexity</description>
+  
+  <rule ref="NCAC" />
+
+  <!-- 
+    Detects UTF-8 BOM (Byte Order Mark) sequence (EF BB BF) at the beginning of PHP files.
+    This rule ensures that PHP files do not contain a UTF-8 BOM header,
+    which can cause unexpected output and interfere with PHP execution.
+  -->
+  <!-- Détection de BOM UTF-8 (EF BB BF) en début de fichier PHP -->
+  <rule ref="Generic.Files.ByteOrderMark" />
+
+  <!-- Detect any character (whitespace, newline...) before <?php -->
+  <rule ref="Generic.PHP.CharacterBeforePHPOpeningTag" />
+
+
+  <!-- Extensions Drupal supportées -->
+  <arg name="extensions" value="php,module,inc,theme,install,profile"/>
+  
+  <!-- Répertoires par défaut (utilisés quand aucun chemin n'est spécifié) -->
+  <file>modules/custom</file>
+  <file>sites/darty-et-vous/modules/custom</file>
+  <file>sites/darty-et-vous/themes/conseil</file>
+  <file>sites/darty-et-vous/settings.php</file>
+  <file>sites/darty-et-vous/settings.dev.php</file>
+  <file>sites/darty-et-vous/settings.prod.php</file>
+  <file>sites/darty-cuisine/modules/custom</file>
+  <file>sites/darty-cuisine/themes/darty_theme</file>
+  <file>sites/darty-cuisine/settings.php</file>
+  <file>sites/darty-cuisine/settings.dev.php</file>
+  <file>sites/darty-cuisine/settings.prod.php</file>
+  <file>sites/darty-services/modules/custom</file>
+  <file>sites/darty-services/themes/custom/dartyservices</file>
+  <file>sites/darty-services/settings.php</file>
+  <file>sites/darty-services/settings.dev.php</file>
+  <file>sites/darty-services/settings.staging.php</file>
+  <file>sites/darty-services/settings.prod.php</file>
+
+  <!-- Exclusions de dossiers -->
+  <exclude-pattern>*/contrib/*</exclude-pattern>
+  <exclude-pattern>*/vendor/*</exclude-pattern>
+  <exclude-pattern>*/node_modules/*</exclude-pattern>
+  <exclude-pattern>*/core/*</exclude-pattern>
+  <exclude-pattern>*/libraries/*</exclude-pattern>
+  <exclude-pattern>sites/*/themes/contrib/*</exclude-pattern>
+  <exclude-pattern>sites/*/modules/contrib/*</exclude-pattern>
+  
+  <!-- Exclusions de fichiers racine Drupal (non modifiables) -->
+  <exclude-pattern>update.php</exclude-pattern>
+  <exclude-pattern>index.php</exclude-pattern>
+  
+  <!-- Exclude ConseilSearchTrait to maintain compatibility with parent class -->
+  <exclude-pattern>*/conseil_search/src/Plugin/views/filter/ConseilSearchTrait.php</exclude-pattern>
+
+</ruleset>

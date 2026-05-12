@@ -1,0 +1,14 @@
+#!/bin/sh
+# Husky pre-commit hook
+# Analyzes only staged PHP files for cognitive complexity
+
+if [ -f "vendor/autoload.php" ]; then
+  php bin/cognitive-complexity check src/ --diff --max=15
+  if [ $? -ne 0 ]; then
+    echo "❌ Pre-commit check failed: cognitive complexity threshold exceeded."
+    echo "   Simplify the offending functions before committing."
+    exit 1
+  fi
+fi
+
+exit 0

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="PHP Cognitive Complexity" default="check" basedir=".">
+    <description>
+        Build file for PHP Cognitive Complexity CLI
+        
+        Targets:
+            - check          : Run all quality checks (default)
+            - psalm          : Static analysis with Psalm
+            - cs             : Code style check with PHPCS
+            - cs-fix         : Auto-fix code style with PHP-CS-Fixer
+            - cs-fix-dry     : Show code style fixes without applying
+            - test           : Run PHPUnit test suite
+            - test-coverage  : Run tests with code coverage report
+            - clean          : Clean generated files
+    </description>
+
+    <!-- Properties -->
+    <property name="vendor.bin" value="${basedir}/vendor/bin" />
+    <property name="src.dir" value="${basedir}/src" />
+    <property name="tests.dir" value="${basedir}/tests" />
+    <property name="coverage.dir" value="${basedir}/coverage-html" />
+    <property name="reports.dir" value="${basedir}/reports" />
+
+    <!-- Targets -->
+    
+    <target name="check" description="Run all quality checks (psalm + cs + test)" depends="psalm,cs,test">
+        <echo msg="✓ All checks passed!" />
+    </target>
+
+    <target name="psalm" description="Run Psalm static analysis">
+        <echo msg="Running Psalm static analysis..." />
+        <exec executable="vendor/bin/psalm" passthru="true" checkreturn="true" />
+    </target>
+
+    <target name="cs" description="Check code style with PHPCS using NCAC standard">
+        <echo msg="Checking code style with PHPCS (NCAC standard)..." />
+        <exec executable="vendor/bin/phpcs" passthru="true" checkreturn="true">
+            <arg line="--standard=NCAC src/ tests/" />
+        </exec>
+    </target>
+
+    <target name="cs-fix" description="Auto-fix code style with ncac-format">
+        <echo msg="Auto-fixing code style with ncac-format..." />
+        <exec executable="vendor/bin/ncac-format" passthru="true" checkreturn="true">
+            <arg value="." />
+        </exec>
+    </target>
+
+    <target name="cs-fix-dry" description="Show code style fixes without applying them">
+        <echo msg="Showing code style fixes (dry-run)..." />
+        <exec executable="vendor/bin/ncac-format" passthru="true" checkreturn="true">
+            <arg line="--dry-run ." />
+        </exec>
+    </target>
+
+    <target name="test" description="Run PHPUnit test suite">
+        <echo msg="Running PHPUnit tests..." />
+        <exec executable="vendor/bin/phpunit" passthru="true" checkreturn="true" />
+    </target>
+
+    <target name="test-coverage" description="Run PHPUnit tests with code coverage report">
+        <echo msg="Running PHPUnit tests with code coverage..." />
+        <mkdir dir="${coverage.dir}" />
+        <exec executable="vendor/bin/phpunit" passthru="true" checkreturn="true">
+            <env key="XDEBUG_MODE" value="coverage" />
+            <arg line="--coverage-html coverage-html --coverage-clover coverage.xml" />
+        </exec>
+        <echo msg="Coverage report generated in ${coverage.dir}/" />
+    </target>
+
+    <target name="clean" description="Clean generated files">
+        <echo msg="Cleaning generated files..." />
+        <delete dir="${coverage.dir}" quiet="true" />
+        <delete file="${basedir}/coverage.xml" quiet="true" />
+        <delete dir="${reports.dir}" quiet="true" />
+        <echo msg="✓ Clean complete" />
+    </target>
+
+    <!-- Meta target for help -->
+    <target name="help" description="Display this help message">
+        <echo msg="Available targets:" />
+        <echo msg="" />
+        <exec executable="vendor/bin/phing">
+            <arg value="-l" />
+        </exec>
+    </target>
+
+</project>
