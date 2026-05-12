@@ -1,0 +1,89 @@
+{
+  "name": "ncac/php-cognitive-complexity",
+  "description": "CLI tool for measuring PHP cognitive complexity (ISO SonarQube) — integrates with CI/CD pipelines and Husky pre-commit hooks",
+  "type": "project",
+  "keywords": [
+    "cognitive-complexity",
+    "php",
+    "static-analysis",
+    "cli",
+    "code-quality",
+    "sonarqube",
+    "ci-cd",
+    "pre-commit"
+  ],
+  "homepage": "https://github.com/ncac/php-cognitive-complexity",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Nicolas Catrice-Auzon Cape (NCAC)",
+      "email": "dev.ncac@gmail.com",
+      "homepage": "https://gravatar.com/devncac",
+      "role": "Tech Lead"
+    }
+  ],
+  "support": {
+    "issues": "https://github.com/ncac/php-cognitive-complexity/issues",
+    "source": "https://github.com/ncac/php-cognitive-complexity",
+    "docs": "https://github.com/ncac/php-cognitive-complexity/blob/main/README.md"
+  },
+  "require": {
+    "php": "^8.2",
+    "nikic/php-parser": "^5.0",
+    "revolt/event-loop": ">=1.0.0 <1.0.7",
+    "symfony/console": "^6.0 || ^7.0",
+    "symfony/finder": "^6.0 || ^7.0",
+    "symfony/yaml": "^6.0 || ^7.0"
+  },
+  "require-dev": {
+    "friendsofphp/php-cs-fixer": "3.64.*",
+    "ncac/phpcs-standard": "^4.1",
+    "phing/phing": "^3.1",
+    "phpunit/phpunit": "^10.0 || ^11.0",
+    "squizlabs/php_codesniffer": "^3.7 || ^4.0",
+    "vimeo/psalm": "^6.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "NCAC\\CognitiveComplexity\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "NCAC\\CognitiveComplexity\\Tests\\": "tests/"
+    }
+  },
+  "bin": [
+    "bin/cognitive-complexity"
+  ],
+  "config": {
+    "sort-packages": true,
+    "platform": {
+      "php": "8.2.30"
+    },
+    "allow-plugins": {
+      "dealerdirect/phpcodesniffer-composer-installer": true
+    }
+  },
+  "scripts": {
+    "test": "phpunit",
+    "test-coverage": "XDEBUG_MODE=coverage phpunit --coverage-html coverage-html --coverage-clover coverage.xml",
+    "psalm": "psalm",
+    "cs-check": "@php scripts/ncac-phpcs-fix.php --check",
+    "cs-fix": "@php scripts/ncac-phpcs-fix.php",
+    "cs-fix:dry": "@php scripts/ncac-phpcs-fix.php --dry-run",
+    "check": [
+      "@psalm",
+      "@cs-check",
+      "@test"
+    ]
+  },
+  "scripts-descriptions": {
+    "test": "Run PHPUnit test suite",
+    "test-coverage": "Run PHPUnit with code coverage reports",
+    "psalm": "Run Psalm static analysis",
+    "cs": "Check code style with PHPCS",
+    "cs-fix": "Auto-fix code style with ncac-format",
+    "check": "Run all quality checks (psalm + cs + tests)"
+  }
+}

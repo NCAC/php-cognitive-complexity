@@ -1,0 +1,29 @@
+{
+  "name": "ncac-php-cognitive-complexity-dev",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspace",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "autoOpenWorkspace.enableAutoOpenIfSingleWorkspace": true,
+        "editor.formatOnSave": false,
+        "php.validate.executablePath": "/usr/local/bin/php"
+      },
+      "extensions": [
+        "bmewburn.vscode-intelephense-client",
+        "emeraldwalk.RunOnSave",
+        "esbenp.prettier-vscode",
+        "gxl.git-graph-3",
+        "github.vscode-github-actions",
+        "github.vscode-pull-request-github",
+        "ikappas.composer",
+        "jannisx11.batch-rename-extension",
+        "xdebug.php-debug",
+        "zoma.vscode-auto-open-workspace"
+      ]
+    }
+  },
+  "postCreateCommand": "sh /workspace/.docker/post-create-command.sh",
+  "forwardPorts": [9048]
+}

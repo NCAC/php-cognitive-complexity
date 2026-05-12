@@ -1,0 +1,15 @@
+{
+  "name": "ncac-php-cognitive-complexity",
+  "version": "1.0.0",
+  "description": "PHP Cognitive Complexity CLI — release tooling",
+  "private": true,
+  "devDependencies": {
+    "@release-it/bumper": "^7.0.5",
+    "@release-it/conventional-changelog": "^10.0.1",
+    "husky": "^9.0.0",
+    "release-it": "^19.0.5"
+  },
+  "scripts": {
+    "prepare": "husky"
+  }
+}

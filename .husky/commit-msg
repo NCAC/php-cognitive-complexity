@@ -1,0 +1,21 @@
+#!/bin/sh
+# Husky commit-msg hook: enforce Conventional Commits
+# Format: type(scope): description
+#
+# Valid types: feat, fix, docs, style, refactor, test, chore, build, ci, perf, revert, release
+
+MSG=$(cat "$1")
+
+if ! echo "$MSG" | grep -qE '^(feat|fix|docs|style|refactor|test|chore|build|ci|perf|revert|release)(\(.+\))?: .{1,100}$'; then
+  echo "❌ Commit message does not follow Conventional Commits format."
+  echo ""
+  echo "   Expected: type(scope): description"
+  echo "   Example:  feat(analyzer): add nesting-level bonus calculation"
+  echo ""
+  echo "   Valid types: feat, fix, docs, style, refactor, test, chore, build, ci, perf, revert, release"
+  echo ""
+  echo "   Your message: $MSG"
+  exit 1
+fi
+
+exit 0

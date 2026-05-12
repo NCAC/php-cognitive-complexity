@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<ruleset name="ncac-php-cognitive-complexity">
+  <description>Coding standard for ncac/php-cognitive-complexity</description>
+
+  <rule ref="NCAC" />
+
+  <!-- Detects UTF-8 BOM at the beginning of PHP files -->
+  <rule ref="Generic.Files.ByteOrderMark" />
+
+  <!-- Detect any character before <?php -->
+  <rule ref="Generic.PHP.CharacterBeforePHPOpeningTag" />
+
+  <arg name="extensions" value="php"/>
+
+  <!-- Directories to scan -->
+  <file>src</file>
+  <file>tests</file>
+
+  <!-- Exclusions -->
+  <exclude-pattern>*/vendor/*</exclude-pattern>
+  <exclude-pattern>*/node_modules/*</exclude-pattern>
+
+</ruleset>

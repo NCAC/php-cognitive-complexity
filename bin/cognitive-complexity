@@ -1,0 +1,29 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+// Autoload: handle both local dev (vendor/) and global Composer install
+$autoloadPaths = [
+    __DIR__ . '/../vendor/autoload.php',
+    __DIR__ . '/../../../autoload.php',
+];
+
+$autoloaded = false;
+foreach ($autoloadPaths as $path) {
+    if (file_exists($path)) {
+        require_once $path;
+        $autoloaded = true;
+        break;
+    }
+}
+
+if (!$autoloaded) {
+    fwrite(STDERR, "Error: Composer autoloader not found.\nRun `composer install` first.\n");
+    exit(1);
+}
+
+use NCAC\CognitiveComplexity\CLI\Application;
+
+$app = new Application();
+exit($app->run());

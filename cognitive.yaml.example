@@ -1,0 +1,18 @@
+# Example configuration file for ncac/php-cognitive-complexity
+# Copy to cognitive.yaml at the root of your project
+
+# Default complexity threshold for all files
+max_complexity: 15
+
+# Per-path overrides (most specific prefix wins)
+paths:
+  src/Controller/: 10
+  src/Service/: 12
+  tests/: 20
+
+# Paths to exclude from analysis
+exclude:
+  - vendor/
+  - var/
+  - cache/
+  - legacy/
