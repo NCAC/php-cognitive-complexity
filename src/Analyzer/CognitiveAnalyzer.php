@@ -72,7 +72,8 @@ final class CognitiveAnalyzer {
     }
 
     $finder = new Finder();
-    $finder->files()->name('*.php')->in($path);
+    $patterns = array_map(static fn (string $ext) => '*.' . $ext, $this->config->getExtensions());
+    $finder->files()->name($patterns)->in($path);
 
     foreach ($this->config->getExcludedPaths() as $excluded) {
       $finder->exclude($excluded);
@@ -109,7 +110,11 @@ final class CognitiveAnalyzer {
     }
 
     $files = array_unique(array_filter(explode("\n", $raw)));
-    $php_files = array_filter($files, static fn (string $f) => str_ends_with($f, '.php'));
+    $extensions = $this->config->getExtensions();
+    $php_files = array_filter(
+      $files,
+      static fn (string $f) => \in_array(pathinfo($f, \PATHINFO_EXTENSION), $extensions, true),
+    );
 
     $base_path = rtrim($base_path, '/');
     $cwd = (string) getcwd();

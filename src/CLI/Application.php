@@ -11,7 +11,7 @@ use Symfony\Component\Console\Application as BaseApplication;
  */
 final class Application extends BaseApplication {
 
-  private const VERSION = '1.0.0';
+  private const VERSION = '1.1.0';
 
   private const NAME = 'PHP Cognitive Complexity';
 
@@ -20,6 +20,7 @@ final class Application extends BaseApplication {
 
     $this->add(new CheckCommand());
     $this->add(new BaselineCommand());
+    $this->add(new AnalyseCommand());
     $this->setDefaultCommand('check', false);
   }
 

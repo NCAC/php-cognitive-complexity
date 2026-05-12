@@ -43,4 +43,14 @@ final class ConfigTest extends TestCase {
     self::assertSame(['vendor/', 'cache/'], $config->getExcludedPaths());
   }
 
+  public function testGetExtensionsDefaultsToPhp(): void {
+    $config = new Config(15);
+    self::assertSame(['php'], $config->getExtensions());
+  }
+
+  public function testGetExtensionsCustom(): void {
+    $config = new Config(15, [], [], ['php', 'module', 'inc']);
+    self::assertSame(['php', 'module', 'inc'], $config->getExtensions());
+  }
+
 }
