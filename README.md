@@ -49,6 +49,9 @@ vendor/bin/cognitive-complexity check src/ --format=json
 
 # GitLab Code Quality artifact
 vendor/bin/cognitive-complexity check src/ --format=gitlab > gl-code-quality-report.json
+
+# Drupal/multi-extension projects
+vendor/bin/cognitive-complexity check web/ --ext=php,module,inc,theme,install
 ```
 
 ### `analyse` — interactive exploration
@@ -123,6 +126,15 @@ exclude:
   - vendor/
   - cache/
   - legacy/
+
+# File extensions to scan (default: php)
+# CLI --ext overrides this list
+extensions:
+  - php
+  - module
+  - inc
+  - theme
+  - install
 ```
 
 ---
