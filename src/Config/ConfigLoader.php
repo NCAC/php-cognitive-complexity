@@ -19,6 +19,10 @@ use Symfony\Component\Yaml\Yaml;
  * exclude:
  *   - vendor/
  *   - cache/
+ * extensions:
+ *   - php
+ *   - module
+ *   - inc
  */
 final class ConfigLoader {
 
@@ -26,15 +30,9 @@ final class ConfigLoader {
    * Load config from a YAML file (or return defaults if no file given).
    */
   public static function load(?string $config_file, int $default_max = 15): Config {
-    if ($config_file === null) {
-      // Auto-discover cognitive.yaml in cwd
-      $candidate = (getcwd() ?: '') . '/cognitive.yaml';
-      if (file_exists($candidate)) {
-        $config_file = $candidate;
-      }
-    }
+    $config_file = self::resolveConfigFile($config_file);
 
-    if ($config_file === null || !file_exists($config_file)) {
+    if ($config_file === null) {
       return new Config($default_max);
     }
 
@@ -43,21 +41,60 @@ final class ConfigLoader {
 
     $max = isset($data['max_complexity']) ? (int) $data['max_complexity'] : $default_max;
 
-    /** @var array<string, int> $pathThresholds */
-    $path_thresholds = [];
+    return new Config($max, self::parsePathThresholds($data), self::parseExcludedPaths($data), self::parseExtensions($data));
+  }
+
+  private static function resolveConfigFile(?string $config_file): ?string {
+    if ($config_file !== null) {
+      return file_exists($config_file) ? $config_file : null;
+    }
+
+    $candidate = (getcwd() ?: '') . '/cognitive.yaml';
+
+    return file_exists($candidate) ? $candidate : null;
+  }
+
+  /**
+   * @param array<string, mixed> $data
+   * @return array<string, int>
+   */
+  private static function parsePathThresholds(array $data): array {
+    $thresholds = [];
+
     if (isset($data['paths']) && \is_array($data['paths'])) {
       foreach ($data['paths'] as $path => $threshold) {
-        $path_thresholds[(string) $path] = (int) $threshold;
+        $thresholds[(string) $path] = (int) $threshold;
       }
     }
 
-    /** @var list<string> $excludedPaths */
-    $excluded_paths = [];
+    return $thresholds;
+  }
+
+  /**
+   * @param array<string, mixed> $data
+   * @return list<string>
+   */
+  private static function parseExcludedPaths(array $data): array {
     if (isset($data['exclude']) && \is_array($data['exclude'])) {
-      $excluded_paths = array_values(array_map('strval', $data['exclude']));
+      return array_values(array_map('strval', $data['exclude']));
     }
 
-    return new Config($max, $path_thresholds, $excluded_paths);
+    return [];
+  }
+
+  /**
+   * @param array<string, mixed> $data
+   * @return list<string>
+   */
+  private static function parseExtensions(array $data): array {
+    if (isset($data['extensions']) && \is_array($data['extensions'])) {
+      $parsed = array_values(array_filter(array_map('strval', $data['extensions'])));
+      if ($parsed !== []) {
+        return $parsed;
+      }
+    }
+
+    return Config::DEFAULT_EXTENSIONS;
   }
 
 }

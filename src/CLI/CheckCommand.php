@@ -36,7 +36,8 @@ final class CheckCommand extends Command {
       ->addOption('config', 'c', InputOption::VALUE_REQUIRED, 'Path to cognitive.yaml config file', null)
       ->addOption('format', 'f', InputOption::VALUE_REQUIRED, 'Output format: console, json, gitlab, checkstyle', 'console')
       ->addOption('diff', null, InputOption::VALUE_NONE, 'Analyze only git-modified files')
-      ->addOption('baseline', null, InputOption::VALUE_REQUIRED, 'Baseline file to ignore existing violations', null);
+      ->addOption('baseline', null, InputOption::VALUE_REQUIRED, 'Baseline file to ignore existing violations', null)
+      ->addOption('ext', null, InputOption::VALUE_REQUIRED, 'Comma-separated file extensions to check (overrides config file)', null);
   }
 
   /** @override */
@@ -52,6 +53,16 @@ final class CheckCommand extends Command {
     $baseline = $input->getOption('baseline');
 
     $config = ConfigLoader::load($config_file, $max);
+
+    /** @var string|null $ext_option */
+    $ext_option = $input->getOption('ext');
+    if ($ext_option !== null) {
+      $extensions = array_values(array_filter(array_map('trim', explode(',', $ext_option))));
+      if ($extensions !== []) {
+        $config = $config->withExtensions($extensions);
+      }
+    }
+
     $analyzer = new CognitiveAnalyzer($config);
     $results = $analyzer->analyze($path, $diff);
 

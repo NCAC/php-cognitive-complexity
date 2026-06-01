@@ -1,0 +1,8 @@
+<?php
+
+declare(strict_types=1);
+
+// Drupal-style fixture: simple hook with no control structures => score = 0
+function my_module_help(string $_route_name): string {
+  return 'Module help text.';
+}

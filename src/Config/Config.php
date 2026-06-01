@@ -10,7 +10,7 @@ namespace NCAC\CognitiveComplexity\Config;
 final class Config {
 
   /** @var list<string> */
-  private const DEFAULT_EXTENSIONS = ['php'];
+  public const DEFAULT_EXTENSIONS = ['php'];
 
   /**
    * @param int                   $default_max        Default complexity threshold
@@ -60,6 +60,13 @@ final class Config {
    */
   public function getExtensions(): array {
     return $this->extensions;
+  }
+
+  /**
+   * @param list<string> $extensions
+   */
+  public function withExtensions(array $extensions): self {
+    return new self($this->default_max, $this->path_thresholds, $this->excluded_paths, $extensions);
   }
 
 }
