@@ -19,6 +19,10 @@ use Symfony\Component\Yaml\Yaml;
  * exclude:
  *   - vendor/
  *   - cache/
+ * extensions:
+ *   - php
+ *   - module
+ *   - inc
  */
 final class ConfigLoader {
 
@@ -57,7 +61,16 @@ final class ConfigLoader {
       $excluded_paths = array_values(array_map('strval', $data['exclude']));
     }
 
-    return new Config($max, $path_thresholds, $excluded_paths);
+    /** @var list<string> $extensions */
+    $extensions = Config::DEFAULT_EXTENSIONS;
+    if (isset($data['extensions']) && \is_array($data['extensions'])) {
+      $parsed = array_values(array_filter(array_map('strval', $data['extensions'])));
+      if ($parsed !== []) {
+        $extensions = $parsed;
+      }
+    }
+
+    return new Config($max, $path_thresholds, $excluded_paths, $extensions);
   }
 
 }

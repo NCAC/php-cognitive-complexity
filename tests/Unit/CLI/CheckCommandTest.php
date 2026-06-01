@@ -81,6 +81,39 @@ final class CheckCommandTest extends TestCase {
     self::assertJson((string) $output);
   }
 
+  public function testExtOptionScansNonPhpFiles(): void {
+    $this->tester->execute([
+      'path' => $this->fixturesDir . '/simple.module',
+      '--ext' => 'module',
+      '--max' => '100',
+    ]);
+
+    self::assertSame(Command::SUCCESS, $this->tester->getStatusCode());
+    self::assertStringContainsString('No cognitive complexity violations found', $this->tester->getDisplay());
+  }
+
+  public function testExtOptionOverridesConfig(): void {
+    // Without --ext, a .module file is ignored (only .php scanned)
+    $this->tester->execute([
+      'path' => $this->fixturesDir . '/simple.module',
+      '--max' => '100',
+    ]);
+
+    self::assertSame(Command::SUCCESS, $this->tester->getStatusCode());
+    // No functions analyzed since .module is not scanned by default
+    self::assertStringContainsString('No cognitive complexity violations found', $this->tester->getDisplay());
+  }
+
+  public function testExtOptionAcceptsMultipleExtensions(): void {
+    $this->tester->execute([
+      'path' => $this->fixturesDir,
+      '--ext' => 'php,module',
+      '--max' => '100',
+    ]);
+
+    self::assertSame(Command::SUCCESS, $this->tester->getStatusCode());
+  }
+
   public function testBaselineOptionSuppressesKnownViolations(): void {
     // First, generate a baseline from the high complexity file
     $baseline = [];

@@ -62,6 +62,29 @@ YAML;
     self::assertSame(12, $config->getDefaultMax());
   }
 
+  public function testLoadsExtensionsFromYaml(): void {
+    $yaml = <<<YAML
+max_complexity: 15
+extensions:
+  - php
+  - module
+  - inc
+YAML;
+    file_put_contents($this->tmpDir . '/cognitive.yaml', $yaml);
+
+    $config = ConfigLoader::load($this->tmpDir . '/cognitive.yaml');
+
+    self::assertSame(['php', 'module', 'inc'], $config->getExtensions());
+  }
+
+  public function testDefaultExtensionsWhenNotInYaml(): void {
+    file_put_contents($this->tmpDir . '/cognitive.yaml', "max_complexity: 15\n");
+
+    $config = ConfigLoader::load($this->tmpDir . '/cognitive.yaml');
+
+    self::assertSame(['php'], $config->getExtensions());
+  }
+
   protected function setUp(): void {
     $this->tmpDir = sys_get_temp_dir() . '/php-cc-tests-' . uniqid();
     mkdir($this->tmpDir, 0755, true);
