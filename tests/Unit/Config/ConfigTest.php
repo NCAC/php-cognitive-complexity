@@ -53,4 +53,15 @@ final class ConfigTest extends TestCase {
     self::assertSame(['php', 'module', 'inc'], $config->getExtensions());
   }
 
+  public function testWithExtensionsReturnsNewInstanceWithOverriddenExtensions(): void {
+    $original = new Config(15, ['src/' => 10], ['vendor/'], ['php']);
+    $updated = $original->withExtensions(['php', 'module', 'inc']);
+
+    self::assertSame(['php', 'module', 'inc'], $updated->getExtensions());
+    self::assertSame(['php'], $original->getExtensions());
+    self::assertSame(15, $updated->getDefaultMax());
+    self::assertSame(['vendor/'], $updated->getExcludedPaths());
+    self::assertSame(10, $updated->getThresholdForPath('src/Foo.php'));
+  }
+
 }
