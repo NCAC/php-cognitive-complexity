@@ -1,5 +1,27 @@
 # Changelog
 
+# [1.2.0](https://github.com/ncac/php-cognitive-complexity/compare/v1.1.0...v1.2.0) (2026-06-01)
+
+
+### docs
+
+* check with ext options ([](https://github.com/ncac/php-cognitive-complexity/commit/3d679a7929db4eb04cf092a9b3db14e0927bb95e))
+
+
+### feat
+
+* **check:** add --ext option and YAML extensions support ([](https://github.com/ncac/php-cognitive-complexity/commit/89a25b6154746c23649185d7652b4a25c77ce21f))
+
+
+### refactor
+
+* **ConfigLoader:** extract helpers to reduce cognitive complexity ([](https://github.com/ncac/php-cognitive-complexity/commit/faafbfe22e28a183fac1cb60f24865720a9e08d5))
+
+
+### test
+
+* **Config:** cover withExtensions immutability and field preservation ([](https://github.com/ncac/php-cognitive-complexity/commit/87b5bc0a401ade82a8864517bf97eb9bfafdbde8))
+
 # [1.1.0](https://github.com/ncac/php-cognitive-complexity/compare/v1.0.0...v1.1.0) (2026-05-12)
 
 
