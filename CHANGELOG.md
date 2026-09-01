@@ -1,5 +1,56 @@
 # Changelog
 
+# [2.0.0](https://github.com/ncac/php-cognitive-complexity/compare/v1.2.0...v2.0.0) (2026-09-01)
+
+
+### chore
+
+* better readability and ncac/phpcs-standard compliant ([](https://github.com/ncac/php-cognitive-complexity/commit/4fd41d769abb90ef92b11b8a31db45cef28c2f5f))
+
+
+### docs
+
+* RFC 0001 — project-relative path matching for v2 ([](https://github.com/ncac/php-cognitive-complexity/commit/e28ab7b52e6c37f6b437b50f89d5366ba308abe6))
+
+
+### feat
+
+* **config:** project-relative glob path matching in cognitive.yaml (v2) ([](https://github.com/ncac/php-cognitive-complexity/commit/8b1b65b3caa8810873ab63e96b4fd396f3c38312)), closes [#7](https://github.com/ncac/php-cognitive-complexity/issues/7)
+* update composer packages ([](https://github.com/ncac/php-cognitive-complexity/commit/541b06fcb5e0f7526b48ea6b911aa7b69cd4384b))
+
+
+### refactor
+
+* **config:** drop unreachable branches flagged by patch coverage ([](https://github.com/ncac/php-cognitive-complexity/commit/59a7020611bbb04f0d7f21d0cc422982db1cc2b8)), closes [#7](https://github.com/ncac/php-cognitive-complexity/issues/7)
+
+
+### test
+
+* **config:** close v2 path-matching coverage gaps ([](https://github.com/ncac/php-cognitive-complexity/commit/82ac572641ed36650e1afe0b6ebbd2403b805643)), closes [#7](https://github.com/ncac/php-cognitive-complexity/issues/7)
+* **config:** cover v2 path-matching behaviour across CLI + reporters ([](https://github.com/ncac/php-cognitive-complexity/commit/3444b68defeb63f0e890b7172432de03ff6215ed)), closes [#7](https://github.com/ncac/php-cognitive-complexity/issues/7)
+
+
+### BREAKING CHANGE
+
+* **config:** exclude:/paths: keys are matched relative to the project
+root (the cognitive.yaml directory, or the new root: key) instead of the
+CLI argument, and are now anchored glob patterns (*, **, ?). Reported
+paths and baseline keys become project-root-relative; a missing --config
+file is a hard error (exit 2).
+
+- add PathMatcher (glob -> anchored regex, ** spans dirs, **/ = any depth)
+- Config: projectRoot, isExcluded(), glob-aware getThresholdForPath(),
+  getExcludedPaths() -> getExcludePatterns()
+- ConfigLoader: resolve project root (root: key / config dir / cwd),
+  throw ConfigException on missing explicit --config or bad YAML
+- CognitiveAnalyzer: root-relative paths everywhere; one Finder prune
+  closure filters + prunes excluded dirs; --diff honours exclude:
+- reporters: print AnalysisResult::file verbatim (already root-relative)
+- AnalyseCommand: stop discarding paths: overrides
+- Application: VERSION 2.0.0
+- docs: RFC 0001, MIGRATION.md, README + cognitive.yaml.example, CHANGELOG
+- tests: PathMatcherTest, exclude/diff/scan-arg-independence coverage
+
 # [2.0.0](https://github.com/ncac/php-cognitive-complexity/compare/v1.2.0...v2.0.0) (unreleased)
 
 Path matching in `cognitive.yaml` is reworked. See [`MIGRATION.md`](MIGRATION.md)
