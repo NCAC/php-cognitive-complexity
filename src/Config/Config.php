@@ -16,43 +16,63 @@ final class Config {
   /** @var list<string> */
   public const DEFAULT_EXTENSIONS = ['php'];
 
+  private readonly int $defaultMax;
+
+  /** @var array<string, int> */
+  private readonly array $pathThresholds;
+
+  /** @var list<string> */
+  private readonly array $excludePatterns;
+
+  /** @var list<string> */
+  private readonly array $extensions;
+
+  private readonly string $projectRoot;
+
   /** @var array<string, PathMatcher> pattern => compiled matcher */
-  private array $thresholdMatchers;
+  private readonly array $thresholdMatchers;
 
   /** @var list<PathMatcher> */
-  private array $excludeMatchers;
+  private readonly array $excludeMatchers;
 
   /**
-   * @param int                $default_max      Default complexity threshold
-   * @param array<string, int> $path_thresholds  Per-pattern overrides (glob => max)
-   * @param list<string>       $excluded_paths   Glob patterns to exclude from analysis
-   * @param list<string>       $extensions       File extensions to analyse
-   * @param string             $project_root     Absolute path all patterns/paths are relative to
+   * @param int                $default_max     Default complexity threshold
+   * @param array<string, int> $path_thresholds Per-pattern overrides (glob => max)
+   * @param list<string>       $excluded_paths  Glob patterns to exclude from analysis
+   * @param list<string>       $extensions      File extensions to analyse
+   * @param string             $project_root    Absolute path all patterns/paths are relative to
    */
   public function __construct(
-    private readonly int $default_max,
-    private readonly array $path_thresholds = [],
-    private readonly array $excluded_paths = [],
-    private readonly array $extensions = self::DEFAULT_EXTENSIONS,
-    private readonly string $project_root = '',
+    int $default_max,
+    array $path_thresholds = [],
+    array $excluded_paths = [],
+    array $extensions = self::DEFAULT_EXTENSIONS,
+    string $project_root = '',
   ) {
-    $this->thresholdMatchers = [];
+    $this->defaultMax = $default_max;
+    $this->pathThresholds = $path_thresholds;
+    $this->excludePatterns = $excluded_paths;
+    $this->extensions = $extensions;
+    $this->projectRoot = $project_root;
+
+    $threshold_matchers = [];
     foreach (array_keys($path_thresholds) as $pattern) {
-      $this->thresholdMatchers[(string) $pattern] = new PathMatcher((string) $pattern);
+      $threshold_matchers[(string) $pattern] = new PathMatcher((string) $pattern);
     }
+    $this->thresholdMatchers = $threshold_matchers;
 
     $this->excludeMatchers = array_map(
-      static fn (string $pattern) => new PathMatcher($pattern),
-      $excluded_paths,
+      static fn (string $pattern): PathMatcher => new PathMatcher($pattern),
+      $this->excludePatterns,
     );
   }
 
   public function getDefaultMax(): int {
-    return $this->default_max;
+    return $this->defaultMax;
   }
 
   public function getProjectRoot(): string {
-    return $this->project_root;
+    return $this->projectRoot;
   }
 
   /**
@@ -73,13 +93,13 @@ final class Config {
       $literal = $matcher->literalLength();
       $length = \strlen($pattern);
       if ($literal > $best_literal || ($literal === $best_literal && $length > $best_length)) {
-        $best = $this->path_thresholds[$pattern];
+        $best = $this->pathThresholds[$pattern];
         $best_literal = $literal;
         $best_length = $length;
       }
     }
 
-    return $best ?? $this->default_max;
+    return $best ?? $this->defaultMax;
   }
 
   /**
@@ -99,7 +119,7 @@ final class Config {
    * @return list<string>
    */
   public function getExcludePatterns(): array {
-    return $this->excluded_paths;
+    return $this->excludePatterns;
   }
 
   /**
@@ -114,11 +134,11 @@ final class Config {
    */
   public function withExtensions(array $extensions): self {
     return new self(
-      $this->default_max,
-      $this->path_thresholds,
-      $this->excluded_paths,
+      $this->defaultMax,
+      $this->pathThresholds,
+      $this->excludePatterns,
       $extensions,
-      $this->project_root,
+      $this->projectRoot,
     );
   }
 

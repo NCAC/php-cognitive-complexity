@@ -49,10 +49,16 @@ final class ComplexityVisitor extends NodeVisitorAbstract {
   /** @var list<array{function: string, line: int, score: int, nesting: int}> */
   private array $stack = [];
 
+  private readonly string $filePath;
+
+  private readonly int $threshold;
+
   public function __construct(
-    private readonly string $file_path,
-    private readonly int $threshold,
+    string $file_path,
+    int $threshold,
   ) {
+    $this->filePath = $file_path;
+    $this->threshold = $threshold;
   }
 
   /** @override */
@@ -99,7 +105,7 @@ final class ComplexityVisitor extends NodeVisitorAbstract {
       }
 
       $this->results[] = new AnalysisResult(
-        file: $this->file_path,
+        file: $this->filePath,
         function: $this->currentFunction,
         score: $this->currentScore,
         threshold: $this->threshold,
