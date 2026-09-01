@@ -23,6 +23,11 @@ use Symfony\Component\Yaml\Yaml;
  *   - php
  *   - module
  *   - inc
+ *
+ * Both `paths:` keys and `exclude:` entries are prefixes matched against each
+ * file's path RELATIVE to the analysed argument (the path given to `check` /
+ * `analyse`), not relative to the project root. Plain directory paths only —
+ * no globs. Note: `--diff` mode does not apply `exclude:`.
  */
 final class ConfigLoader {
 

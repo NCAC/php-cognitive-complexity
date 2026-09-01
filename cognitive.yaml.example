@@ -4,13 +4,20 @@
 # Default complexity threshold for all files
 max_complexity: 15
 
-# Per-path overrides (most specific prefix wins)
+# Per-path overrides (most specific prefix wins).
+# Keys are prefixes matched against each file's path RELATIVE to the argument
+# passed to `check` / `analyse` — not relative to the project root.
 paths:
   src/Controller/: 10
   src/Service/: 12
   tests/: 20
 
-# Paths to exclude from analysis
+# Paths to exclude from analysis.
+# Same matching rule as `paths:` above: relative to the analysed argument, not the
+# project root. Plain directory paths only — no globs (`*`, `**`, `?`), no leading `./`.
+# An entry containing `/` matches that sub-path anywhere in the relative path.
+# Example: run as `check web/sites/` -> `files/php/` excludes every site's Twig cache.
+# Note: `--diff` mode does not apply this list.
 exclude:
   - vendor/
   - var/

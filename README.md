@@ -137,6 +137,48 @@ extensions:
   - install
 ```
 
+### How `exclude:` and `paths:` are matched
+
+Both `exclude:` and the `paths:` keys are **prefixes matched against each file's path
+relative to the argument you pass to `check` / `analyse`** — *not* relative to the
+project root.
+
+So if you run:
+
+```bash
+vendor/bin/cognitive-complexity check web/sites/ --config=cognitive.yaml
+```
+
+a file on disk at `web/sites/foo/files/php/twig_xxx.php` is seen by the matcher as
+`foo/files/php/twig_xxx.php`. Your patterns must start from there:
+
+| Command | Correct `exclude:` entry | Wrong (never matches) |
+| --- | --- | --- |
+| `check web/` | `sites/foo/files/php/` | `web/sites/foo/files/php/` |
+| `check web/sites/` | `foo/files/php/` | `sites/foo/files/php/` |
+| `check web/sites/foo/` | `files/php/` | `sites/foo/files/php/` |
+
+An `exclude:` entry with a `/` in it matches that sub-path **anywhere** in the
+relative path, so a single suffix covers every site in a multi-site tree:
+
+```yaml
+# Run as: check web/sites/  — excludes the compiled-Twig cache of ALL sites
+exclude:
+  - files/php/
+  - files/styles/
+```
+
+**Limitations:**
+
+- **No globs.** `*`, `**`, `?` are treated literally. Only plain directory paths work.
+- **No leading `./`** — write `files/php/`, not `./files/php/`.
+- **`--diff` mode ignores `exclude:`.** When analysing only git-modified files, the
+  exclusion list is not applied; filter those paths in your hook/CI instead.
+- **`--config` is resolved relative to the current working directory.** If the file
+  is not found (or a key is misspelled, e.g. `excludes:`), the tool silently falls
+  back to defaults with **no exclusions and no warning**. Prefer an absolute path in
+  build scripts.
+
 ---
 
 ## Console output example
