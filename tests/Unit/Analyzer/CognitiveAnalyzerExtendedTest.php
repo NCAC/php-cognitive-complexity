@@ -187,6 +187,122 @@ final class CognitiveAnalyzerExtendedTest extends TestCase {
     }
   }
 
+  public function testFileOutsideProjectRootKeepsRootlessRelativePath(): void {
+    $root = sys_get_temp_dir() . '/php-cc-root-' . uniqid();
+    $outside = sys_get_temp_dir() . '/php-cc-outside-' . uniqid();
+    mkdir($root, 0755, true);
+    mkdir($outside, 0755, true);
+    file_put_contents($outside . '/heavy.php', '<?php function heavy(){ if(1){ if(2){ echo 3; } } }');
+
+    $config = new Config(15, [], [], ['php'], $root);
+    $results = (new CognitiveAnalyzer($config))->analyze($outside . '/heavy.php');
+
+    self::assertNotEmpty($results);
+    self::assertStringStartsNotWith('/', $results[0]->file);
+    self::assertStringContainsString('heavy.php', $results[0]->file);
+
+    self::removeTree($root);
+    self::removeTree($outside);
+  }
+
+  public function testDiffModeIgnoresNonMatchingExtensions(): void {
+    $tmp_dir = sys_get_temp_dir() . '/php-cc-git-ext-' . uniqid();
+    mkdir($tmp_dir, 0755, true);
+    $orig_cwd = (string) getcwd();
+    chdir($tmp_dir);
+
+    try {
+      exec('git init -q ' . escapeshellarg($tmp_dir));
+      exec('git -C ' . escapeshellarg($tmp_dir) . ' config user.email "test@test.com"');
+      exec('git -C ' . escapeshellarg($tmp_dir) . ' config user.name "Test"');
+
+      file_put_contents($tmp_dir . '/sample.php', '<?php function staged_fn(): void {}');
+      file_put_contents($tmp_dir . '/notes.txt', 'not php');
+      exec('git -C ' . escapeshellarg($tmp_dir) . ' add -A');
+
+      $config = new Config(15, [], [], ['php'], $tmp_dir);
+      $results = (new CognitiveAnalyzer($config))->analyze($tmp_dir, true);
+
+      self::assertSame(['staged_fn'], array_map(static fn ($r) => $r->function, $results));
+    } finally {
+      chdir($orig_cwd);
+      exec('rm -rf ' . escapeshellarg($tmp_dir));
+    }
+  }
+
+  public function testDiffModeReturnsEmptyWhenNothingChanged(): void {
+    $tmp_dir = sys_get_temp_dir() . '/php-cc-git-clean-' . uniqid();
+    mkdir($tmp_dir, 0755, true);
+    $orig_cwd = (string) getcwd();
+    chdir($tmp_dir);
+
+    try {
+      exec('git init -q ' . escapeshellarg($tmp_dir));
+      exec('git -C ' . escapeshellarg($tmp_dir) . ' config user.email "test@test.com"');
+      exec('git -C ' . escapeshellarg($tmp_dir) . ' config user.name "Test"');
+      file_put_contents($tmp_dir . '/committed.php', '<?php function committed_fn(): void {}');
+      exec('git -C ' . escapeshellarg($tmp_dir) . ' add -A');
+      exec('git -C ' . escapeshellarg($tmp_dir) . ' commit -q -m init');
+
+      $config = new Config(15, [], [], ['php'], $tmp_dir);
+      $results = (new CognitiveAnalyzer($config))->analyze($tmp_dir, true);
+
+      self::assertSame([], $results);
+    } finally {
+      chdir($orig_cwd);
+      exec('rm -rf ' . escapeshellarg($tmp_dir));
+    }
+  }
+
+  public function testDiffModeSkipsStagedFilesDeletedFromWorktree(): void {
+    $tmp_dir = sys_get_temp_dir() . '/php-cc-git-gone-' . uniqid();
+    mkdir($tmp_dir, 0755, true);
+    $orig_cwd = (string) getcwd();
+    chdir($tmp_dir);
+
+    try {
+      exec('git init -q ' . escapeshellarg($tmp_dir));
+      exec('git -C ' . escapeshellarg($tmp_dir) . ' config user.email "test@test.com"');
+      exec('git -C ' . escapeshellarg($tmp_dir) . ' config user.name "Test"');
+      file_put_contents($tmp_dir . '/ghost.php', '<?php function ghost_fn(): void {}');
+      exec('git -C ' . escapeshellarg($tmp_dir) . ' add -A');
+      unlink($tmp_dir . '/ghost.php'); // staged but no longer on disk -> realpath() fails
+
+      $config = new Config(15, [], [], ['php'], $tmp_dir);
+      $results = (new CognitiveAnalyzer($config))->analyze($tmp_dir, true);
+
+      self::assertSame([], $results);
+    } finally {
+      chdir($orig_cwd);
+      exec('rm -rf ' . escapeshellarg($tmp_dir));
+    }
+  }
+
+  public function testDiffModeSkipsFilesOutsideTheBasePath(): void {
+    $tmp_dir = sys_get_temp_dir() . '/php-cc-git-base-' . uniqid();
+    mkdir($tmp_dir . '/src', 0755, true);
+    mkdir($tmp_dir . '/other', 0755, true);
+    $orig_cwd = (string) getcwd();
+    chdir($tmp_dir);
+
+    try {
+      exec('git init -q ' . escapeshellarg($tmp_dir));
+      exec('git -C ' . escapeshellarg($tmp_dir) . ' config user.email "test@test.com"');
+      exec('git -C ' . escapeshellarg($tmp_dir) . ' config user.name "Test"');
+
+      file_put_contents($tmp_dir . '/src/x.php', '<?php function in_src(): void {}');
+      exec('git -C ' . escapeshellarg($tmp_dir) . ' add -A');
+
+      $config = new Config(15, [], [], ['php'], $tmp_dir);
+      $results = (new CognitiveAnalyzer($config))->analyze($tmp_dir . '/other', true);
+
+      self::assertSame([], $results);
+    } finally {
+      chdir($orig_cwd);
+      exec('rm -rf ' . escapeshellarg($tmp_dir));
+    }
+  }
+
   protected function setUp(): void {
     $this->fixturesDir = __DIR__ . '/../../fixtures';
   }

@@ -25,6 +25,10 @@ final class PathMatcherTest extends TestCase {
     yield 'globstar prefix, no false segment'   => ['**/files/php/', 'web/sites/a/files/phpstan.php', false];
     yield 'globstar in the middle'              => ['sites/**/files/php/', 'sites/aaa/files/php/twig/x.php', true];
     yield 'globstar middle, zero segments'      => ['sites/**/files/php/', 'sites/files/php/x.php', true];
+    yield 'trailing bare ** spans segments'     => ['sites/**', 'sites/aaa/files/x.php', true];
+    yield 'trailing bare ** needs a segment'    => ['sites/**', 'sites', false];
+    yield 'lone ** matches everything'          => ['**', 'a/b/c/deep.php', true];
+    yield 'bare ** inside a segment'            => ['a**b', 'axxb', true];
     yield 'single star stays in segment'        => ['src/*/Legacy/', 'src/Billing/Legacy/X.php', true];
     yield 'single star does not cross slash'    => ['src/*/Legacy/', 'src/Billing/Sub/Legacy/X.php', false];
     yield 'question mark, one char'             => ['config?.php', 'config1.php', true];

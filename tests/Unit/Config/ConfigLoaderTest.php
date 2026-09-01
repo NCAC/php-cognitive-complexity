@@ -72,6 +72,14 @@ YAML;
     ConfigLoader::load('/nonexistent/path/cognitive.yaml', 12);
   }
 
+  public function testThrowsConfigExceptionOnMalformedYaml(): void {
+    file_put_contents($this->tmpDir . '/cognitive.yaml', "max_complexity: [unclosed\n  - : :\n");
+
+    $this->expectException(ConfigException::class);
+    $this->expectExceptionMessage('Cannot parse config file');
+    ConfigLoader::load($this->tmpDir . '/cognitive.yaml');
+  }
+
   public function testProjectRootDefaultsToConfigFileDirectory(): void {
     file_put_contents($this->tmpDir . '/cognitive.yaml', "max_complexity: 15\n");
 
