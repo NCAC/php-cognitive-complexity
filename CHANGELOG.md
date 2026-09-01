@@ -1,5 +1,39 @@
 # Changelog
 
+# [2.0.0](https://github.com/ncac/php-cognitive-complexity/compare/v1.2.0...v2.0.0) (unreleased)
+
+Path matching in `cognitive.yaml` is reworked. See [`MIGRATION.md`](MIGRATION.md)
+and [`docs/rfc/0001-project-relative-path-matching.md`](docs/rfc/0001-project-relative-path-matching.md).
+
+### ⚠ BREAKING CHANGES
+
+* **config:** `exclude:` and `paths:` keys are now matched relative to the
+  **project root** (the directory holding `cognitive.yaml`, or the new `root:`
+  key), not relative to the path passed to `check` / `analyse`.
+* **config:** patterns are now **anchored** globs — `*`, `**`, `?` are supported;
+  `tests/` no longer matches `vendor/**/tests/`. Prefix with `**/` for "any depth".
+* **config:** a `--config` file that does not exist is now an error (exit code 2)
+  instead of silently falling back to defaults.
+* **output:** reported paths (`console`, `json`, `gitlab`) and baseline file keys
+  are now project-root-relative. Existing baselines must be regenerated.
+* **api:** `Config::getExcludedPaths()` renamed to `Config::getExcludePatterns()`;
+  `Config::__construct()` gains a trailing `string $projectRoot` argument;
+  `Config::getThresholdForPath()` / new `Config::isExcluded()` expect
+  project-root-relative paths.
+
+### feat
+
+* **config:** glob wildcards (`*`, `**`, `?`) in `exclude:` and `paths:`.
+* **config:** `root:` key to override the project root.
+* **diff:** `--diff` mode now honours `exclude:` patterns.
+* **config:** fail fast with a clear message when `--config` points nowhere.
+
+### fix
+
+* **config:** `paths:` threshold overrides now actually apply to directory scans
+  (they were compared against absolute paths and never matched).
+* **analyse:** the `analyse` command no longer discards `paths:` overrides.
+
 # [1.2.0](https://github.com/ncac/php-cognitive-complexity/compare/v1.1.0...v1.2.0) (2026-06-01)
 
 

@@ -115,17 +115,17 @@ Create a `cognitive.yaml` at the root of your project:
 # Default threshold
 max_complexity: 15
 
-# Per-path overrides
+# Per-path threshold overrides (glob patterns, most specific wins)
 paths:
   src/Controller/: 10
   src/Service/: 12
   tests/: 20
 
-# Excluded paths
+# Paths to exclude from analysis (glob patterns)
 exclude:
   - vendor/
-  - cache/
-  - legacy/
+  - "**/files/php/" # Drupal compiled-Twig cache, any site
+  - "**/files/styles/"
 
 # File extensions to scan (default: php)
 # CLI --ext overrides this list
@@ -135,7 +135,41 @@ extensions:
   - inc
   - theme
   - install
+
+# Optional: override the project root (defaults to this file's directory)
+# root: ..
 ```
+
+### How `exclude:` and `paths:` are matched
+
+> **v2 change.** In v1 these keys were matched relative to the path you passed on
+> the CLI. As of **v2.0.0** they are matched relative to the **project root** and
+> support glob wildcards. See [`MIGRATION.md`](MIGRATION.md).
+
+- **Project root** = the directory containing `cognitive.yaml` (or the `root:`
+  key, or the current directory when no config file is used). Every pattern and
+  every reported path is relative to it, so `check web/`, `check web/sites/` and
+  `check .` all match config the same way — the CLI argument only narrows what is
+  walked.
+- **Anchored.** `tests/` matches the top-level `tests/` directory, not
+  `vendor/phpunit/phpunit/tests/`. Prefix with `**/` to match at any depth.
+- **Wildcards:** `*` (within a path segment), `**` (spans directories),
+  `?` (one character). Naming a directory covers its whole subtree.
+
+| Pattern | Matches | Does not match |
+| --- | --- | --- |
+| `vendor/` | `vendor/autoload.php` | `app/vendor/x.php` |
+| `**/files/php/` | `web/sites/aaa/files/php/twig/x.php` | `web/sites/aaa/files/phpstan.php` |
+| `src/*/Legacy/` | `src/Billing/Legacy/X.php` | `src/Billing/Sub/Legacy/X.php` |
+| `**/*.blade.php` | `resources/views/home.blade.php` | — |
+
+**Notes:**
+
+- `--diff` mode **honours** `exclude:` (it did not in v1).
+- A `--config` path that does not exist is now an **error** (exit code 2), not a
+  silent fallback to defaults.
+- Reported paths (console, `--format=json`, `--format=gitlab`) and baseline file
+  keys are project-root-relative. Regenerate baselines when upgrading from v1.
 
 ---
 

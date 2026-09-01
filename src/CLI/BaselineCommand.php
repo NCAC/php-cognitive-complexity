@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace NCAC\CognitiveComplexity\CLI;
 
 use NCAC\CognitiveComplexity\Analyzer\CognitiveAnalyzer;
+use NCAC\CognitiveComplexity\Config\ConfigException;
 use NCAC\CognitiveComplexity\Config\ConfigLoader;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -44,7 +45,13 @@ final class BaselineCommand extends Command {
     /** @var string|null $outputFile */
     $output_file = $input->getOption('output');
 
-    $config = ConfigLoader::load($config_file, $max);
+    try {
+      $config = ConfigLoader::load($config_file, $max);
+    } catch (ConfigException $e) {
+      $output->writeln('<error>' . $e->getMessage() . '</error>');
+
+      return Command::INVALID;
+    }
     $analyzer = new CognitiveAnalyzer($config);
     $results = $analyzer->analyze($path, false);
 

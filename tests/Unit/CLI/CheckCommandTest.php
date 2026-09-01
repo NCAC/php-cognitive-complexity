@@ -18,6 +18,15 @@ final class CheckCommandTest extends TestCase {
 
   private string $fixturesDir;
 
+  private static function removeTree(string $dir): void {
+    foreach (glob($dir . '/*') ?: [] as $path) {
+      is_dir($path) ? self::removeTree($path) : unlink($path);
+    }
+    if (is_dir($dir)) {
+      rmdir($dir);
+    }
+  }
+
   public function testExitCodeZeroWhenNoViolations(): void {
     $this->tester->execute([
       'path' => $this->fixturesDir . '/simple.php',
@@ -115,10 +124,12 @@ final class CheckCommandTest extends TestCase {
   }
 
   public function testBaselineOptionSuppressesKnownViolations(): void {
-    // First, generate a baseline from the high complexity file
+    // First, generate a baseline from the high complexity file. The baseline
+    // keys must be project-root-relative, exactly as the check command below
+    // produces them (no --config -> project root is the current directory).
     $baseline = [];
     $results = (new \NCAC\CognitiveComplexity\Analyzer\CognitiveAnalyzer(
-      new \NCAC\CognitiveComplexity\Config\Config(1)
+      new \NCAC\CognitiveComplexity\Config\Config(1, [], [], ['php'], (string) getcwd())
     ))->analyze($this->fixturesDir . '/high_complexity.php');
     foreach ($results as $r) {
       $baseline[$r->file][$r->function] = $r->score;
@@ -134,6 +145,44 @@ final class CheckCommandTest extends TestCase {
 
     unlink($baseline_file);
     self::assertSame(Command::SUCCESS, $this->tester->getStatusCode());
+  }
+
+  public function testMissingExplicitConfigFileReturnsInvalid(): void {
+    $this->tester->execute([
+      'path' => $this->fixturesDir . '/simple.php',
+      '--config' => sys_get_temp_dir() . '/php-cc-absent-' . uniqid() . '.yaml',
+    ]);
+
+    self::assertSame(Command::INVALID, $this->tester->getStatusCode());
+    self::assertStringContainsString('Config file not found', $this->tester->getDisplay());
+  }
+
+  public function testExcludeGlobFromConfigSkipsMatchingFiles(): void {
+    $tmp = sys_get_temp_dir() . '/php-cc-check-exclude-' . uniqid();
+    mkdir($tmp . '/src', 0755, true);
+    mkdir($tmp . '/web/sites/aaa/files/php', 0755, true);
+    $heavy = <<<'PHP'
+    <?php
+    function %s($a, $b) {
+      if ($a) { foreach ([] as $x) { if ($x) { while ($x) { if ($x && $b) { echo 1; } } } } }
+      return $a;
+    }
+    PHP;
+    file_put_contents($tmp . '/src/real.php', sprintf($heavy, 'realFn'));
+    file_put_contents($tmp . '/web/sites/aaa/files/php/gen.php', sprintf($heavy, 'generatedFn'));
+    file_put_contents($tmp . '/cognitive.yaml', "max_complexity: 1\nexclude:\n  - \"**/files/php/\"\n");
+
+    $this->tester->execute([
+      'path' => $tmp,
+      '--config' => $tmp . '/cognitive.yaml',
+    ]);
+
+    $out = $this->tester->getDisplay();
+    self::assertSame(Command::FAILURE, $this->tester->getStatusCode());
+    self::assertStringContainsString('src/real.php::realFn', $out);
+    self::assertStringNotContainsString('generatedFn', $out);
+
+    self::removeTree($tmp);
   }
 
   protected function setUp(): void {

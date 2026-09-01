@@ -4,15 +4,36 @@
 # Default complexity threshold for all files
 max_complexity: 15
 
-# Per-path overrides (most specific prefix wins)
+# Per-path threshold overrides.
+# Keys are glob patterns matched against each file's path RELATIVE TO THE PROJECT
+# ROOT (the directory holding this file, or `root:` below). The most specific
+# pattern wins — the one with the most literal (non-wildcard) characters.
 paths:
   src/Controller/: 10
   src/Service/: 12
   tests/: 20
 
-# Paths to exclude from analysis
+# Paths to exclude from analysis.
+# Glob patterns, project-root-relative, anchored:
+#   *   matches within a path segment
+#   **  spans directories (use a leading **/ to match at any depth)
+#   ?   matches a single character
+# Naming a directory excludes its whole subtree. `--diff` mode honours this list.
 exclude:
   - vendor/
   - var/
-  - cache/
-  - legacy/
+  - "**/cache/"
+  - "**/files/php/"    # Drupal: compiled-Twig / PHP storage, every site
+  - "**/files/styles/" # Drupal: image derivatives
+
+# File extensions to scan (default: php). CLI --ext overrides this list.
+extensions:
+  - php
+  - module
+  - inc
+  - theme
+  - install
+
+# Optional: override the project root. Relative values are resolved against the
+# directory containing this file. Defaults to that directory.
+# root: ..
