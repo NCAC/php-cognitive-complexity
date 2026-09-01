@@ -20,6 +20,15 @@ final class BaselineCommandTest extends TestCase {
 
   private string $tmpDir;
 
+  private static function removeTree(string $dir): void {
+    foreach (glob($dir . '/*') ?: [] as $path) {
+      is_dir($path) ? self::removeTree($path) : unlink($path);
+    }
+    if (is_dir($dir)) {
+      rmdir($dir);
+    }
+  }
+
   public function testBaselineOutputsValidJson(): void {
     $this->tester->execute([
       'path' => $this->fixturesDir,
@@ -86,6 +95,43 @@ final class BaselineCommandTest extends TestCase {
     self::assertSame(Command::SUCCESS, $this->tester->getStatusCode());
   }
 
+  public function testMissingExplicitConfigFileReturnsInvalid(): void {
+    $this->tester->execute([
+      'path' => $this->fixturesDir . '/high_complexity.php',
+      '--config' => $this->tmpDir . '/nope.yaml',
+    ]);
+
+    self::assertSame(Command::INVALID, $this->tester->getStatusCode());
+    self::assertStringContainsString('Config file not found', $this->tester->getDisplay());
+  }
+
+  public function testBaselineKeysAreProjectRootRelative(): void {
+    mkdir($this->tmpDir . '/modules/custom', 0755, true);
+    file_put_contents(
+      $this->tmpDir . '/modules/custom/heavy.php',
+      <<<'PHP'
+      <?php
+      function heavy($a, $b) {
+        if ($a) { foreach ([] as $x) { if ($x) { while ($x) { if ($x && $b) { echo 1; } } } } }
+        return $a;
+      }
+      PHP,
+    );
+    file_put_contents($this->tmpDir . '/cognitive.yaml', "max_complexity: 1\n");
+
+    $this->tester->execute([
+      'path' => $this->tmpDir . '/modules',
+      '--config' => $this->tmpDir . '/cognitive.yaml',
+    ]);
+
+    /** @var array<string, array<string, int>> $data */
+    $data = json_decode($this->tester->getDisplay(), true);
+    self::assertArrayHasKey('modules/custom/heavy.php', $data);
+    foreach (array_keys($data) as $key) {
+      self::assertStringStartsNotWith('/', $key);
+    }
+  }
+
   protected function setUp(): void {
     $app = new Application();
     $command = $app->find('baseline');
@@ -96,8 +142,7 @@ final class BaselineCommandTest extends TestCase {
   }
 
   protected function tearDown(): void {
-    array_map('unlink', glob($this->tmpDir . '/*') ?: []);
-    rmdir($this->tmpDir);
+    self::removeTree($this->tmpDir);
   }
 
 }

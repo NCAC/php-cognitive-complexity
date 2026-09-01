@@ -26,4 +26,8 @@ final class ApplicationTest extends TestCase {
     self::assertTrue($app->has('baseline'));
   }
 
+  public function testApplicationReportsMajorVersionTwo(): void {
+    self::assertSame('2.0.0', (new Application())->getVersion());
+  }
+
 }

@@ -18,6 +18,15 @@ final class CheckCommandTest extends TestCase {
 
   private string $fixturesDir;
 
+  private static function removeTree(string $dir): void {
+    foreach (glob($dir . '/*') ?: [] as $path) {
+      is_dir($path) ? self::removeTree($path) : unlink($path);
+    }
+    if (is_dir($dir)) {
+      rmdir($dir);
+    }
+  }
+
   public function testExitCodeZeroWhenNoViolations(): void {
     $this->tester->execute([
       'path' => $this->fixturesDir . '/simple.php',
@@ -136,6 +145,44 @@ final class CheckCommandTest extends TestCase {
 
     unlink($baseline_file);
     self::assertSame(Command::SUCCESS, $this->tester->getStatusCode());
+  }
+
+  public function testMissingExplicitConfigFileReturnsInvalid(): void {
+    $this->tester->execute([
+      'path' => $this->fixturesDir . '/simple.php',
+      '--config' => sys_get_temp_dir() . '/php-cc-absent-' . uniqid() . '.yaml',
+    ]);
+
+    self::assertSame(Command::INVALID, $this->tester->getStatusCode());
+    self::assertStringContainsString('Config file not found', $this->tester->getDisplay());
+  }
+
+  public function testExcludeGlobFromConfigSkipsMatchingFiles(): void {
+    $tmp = sys_get_temp_dir() . '/php-cc-check-exclude-' . uniqid();
+    mkdir($tmp . '/src', 0755, true);
+    mkdir($tmp . '/web/sites/aaa/files/php', 0755, true);
+    $heavy = <<<'PHP'
+    <?php
+    function %s($a, $b) {
+      if ($a) { foreach ([] as $x) { if ($x) { while ($x) { if ($x && $b) { echo 1; } } } } }
+      return $a;
+    }
+    PHP;
+    file_put_contents($tmp . '/src/real.php', sprintf($heavy, 'realFn'));
+    file_put_contents($tmp . '/web/sites/aaa/files/php/gen.php', sprintf($heavy, 'generatedFn'));
+    file_put_contents($tmp . '/cognitive.yaml', "max_complexity: 1\nexclude:\n  - \"**/files/php/\"\n");
+
+    $this->tester->execute([
+      'path' => $tmp,
+      '--config' => $tmp . '/cognitive.yaml',
+    ]);
+
+    $out = $this->tester->getDisplay();
+    self::assertSame(Command::FAILURE, $this->tester->getStatusCode());
+    self::assertStringContainsString('src/real.php::realFn', $out);
+    self::assertStringNotContainsString('generatedFn', $out);
+
+    self::removeTree($tmp);
   }
 
   protected function setUp(): void {

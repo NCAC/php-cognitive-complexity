@@ -83,6 +83,22 @@ final class GitlabReporterTest extends TestCase {
     self::assertStringContainsString('dirty', $decoded[0]['description']);
   }
 
+  public function testLocationPathIsEmittedVerbatim(): void {
+    // Reporter passes AnalysisResult::$file (project-root-relative) straight
+    // through to the GitLab "location.path" field.
+    $results = [
+      new AnalysisResult('web/modules/custom/foo.php', 'bar', score: 20, threshold: 15, line: 7),
+    ];
+
+    ob_start();
+    $this->reporter->report($results);
+    $output = ob_get_clean();
+
+    $decoded = json_decode((string) $output, true);
+    self::assertSame('web/modules/custom/foo.php', $decoded[0]['location']['path']);
+    self::assertSame(md5('web/modules/custom/foo.php::bar'), $decoded[0]['fingerprint']);
+  }
+
   public function testFingerprintIsDeterministic(): void {
     $result = new AnalysisResult('/src/Foo.php', 'myMethod', score: 20, threshold: 15, line: 1);
 

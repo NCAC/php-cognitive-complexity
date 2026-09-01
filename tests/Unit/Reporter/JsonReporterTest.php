@@ -63,6 +63,21 @@ final class JsonReporterTest extends TestCase {
     self::assertJson((string) $json);
   }
 
+  public function testViolationFilePathIsEmittedVerbatim(): void {
+    // The analyzer now hands reporters project-root-relative paths; JsonReporter
+    // must pass them through unchanged.
+    $results = [
+      new AnalysisResult('web/modules/custom/foo.php', 'bar', score: 20, threshold: 15, line: 10),
+    ];
+
+    ob_start();
+    $this->reporter->report($results);
+    $json = ob_get_clean();
+
+    $data = json_decode((string) $json, true);
+    self::assertSame('web/modules/custom/foo.php', $data['violations'][0]['file']);
+  }
+
   public function testReportWithEmptyResultsReturnsNoViolations(): void {
     ob_start();
     $has_violations = $this->reporter->report([]);
