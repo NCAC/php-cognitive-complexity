@@ -158,11 +158,8 @@ final class CognitiveAnalyzer {
       $root = str_replace('\\', '/', $root_real !== false ? $root_real : $root);
       $root = rtrim($root, '/');
 
-      if ($real === $root) {
-        return '';
-      }
-      if (str_starts_with($real, $root . '/')) {
-        return substr($real, \strlen($root) + 1);
+      if ($real === $root || str_starts_with($real, $root . '/')) {
+        return ltrim(substr($real, \strlen($root)), '/');
       }
     }
 

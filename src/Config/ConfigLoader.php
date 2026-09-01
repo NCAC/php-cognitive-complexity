@@ -40,8 +40,7 @@ final class ConfigLoader {
    *                         YAML cannot be parsed.
    */
   public static function load(?string $config_file, int $default_max = 15): Config {
-    $explicit = $config_file !== null;
-    $config_file = self::resolveConfigFile($config_file, $explicit);
+    $config_file = self::resolveConfigFile($config_file);
 
     if ($config_file === null) {
       return new Config($default_max, [], [], Config::DEFAULT_EXTENSIONS, self::cwd());
@@ -70,14 +69,10 @@ final class ConfigLoader {
     );
   }
 
-  private static function resolveConfigFile(?string $config_file, bool $explicit): ?string {
+  private static function resolveConfigFile(?string $config_file): ?string {
     if ($config_file !== null) {
       if (!is_file($config_file)) {
-        if ($explicit) {
-          throw new ConfigException(\sprintf('Config file not found: "%s"', $config_file));
-        }
-
-        return null;
+        throw new ConfigException(\sprintf('Config file not found: "%s"', $config_file));
       }
 
       return realpath($config_file) ?: $config_file;
