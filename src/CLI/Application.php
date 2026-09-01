@@ -11,7 +11,7 @@ use Symfony\Component\Console\Application as BaseApplication;
  */
 final class Application extends BaseApplication {
 
-  private const VERSION = '1.1.0';
+  private const VERSION = '2.0.0';
 
   private const NAME = 'PHP Cognitive Complexity';
 

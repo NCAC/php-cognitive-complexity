@@ -14,6 +14,15 @@ final class CognitiveAnalyzerExtendedTest extends TestCase {
 
   private string $fixturesDir;
 
+  private static function removeTree(string $dir): void {
+    foreach (glob($dir . '/*') ?: [] as $path) {
+      is_dir($path) ? self::removeTree($path) : unlink($path);
+    }
+    if (is_dir($dir)) {
+      rmdir($dir);
+    }
+  }
+
   public function testAnalyzeSingleFile(): void {
     $config = new Config(15);
     $analyzer = new CognitiveAnalyzer($config);
@@ -34,17 +43,15 @@ final class CognitiveAnalyzerExtendedTest extends TestCase {
   }
 
   public function testExcludedPathsAreSkipped(): void {
-    $config = new Config(15, [], ['fixtures/']);
-    $analyzer = new CognitiveAnalyzer($config);
-
-    // Create a temp directory with a subdirectory to exclude
+    // Directory tree mimicking web/sites/<site>/files/php generated caches.
     $tmp_dir = sys_get_temp_dir() . '/php-cc-exclude-test-' . uniqid();
-    $sub_dir = $tmp_dir . '/excluded';
-    mkdir($sub_dir, 0755, true);
-    file_put_contents($tmp_dir . '/included.php', '<?php function included(): void {}');
-    file_put_contents($sub_dir . '/excluded.php', '<?php function excluded(): void {}');
+    mkdir($tmp_dir . '/modules/custom', 0755, true);
+    mkdir($tmp_dir . '/sites/aaa/files/php', 0755, true);
+    file_put_contents($tmp_dir . '/modules/custom/included.php', '<?php function included(): void {}');
+    file_put_contents($tmp_dir . '/sites/aaa/files/php/excluded.php', '<?php function excluded(): void {}');
 
-    $config = new Config(15, [], ['excluded']);
+    // Patterns are project-root-relative; **/ makes them match at any depth.
+    $config = new Config(15, [], ['**/files/php/'], ['php'], $tmp_dir);
     $analyzer = new CognitiveAnalyzer($config);
 
     $results = $analyzer->analyze($tmp_dir);
@@ -52,12 +59,33 @@ final class CognitiveAnalyzerExtendedTest extends TestCase {
     $files = array_map(static fn ($r) => basename($r->file), $results);
     self::assertContains('included.php', $files);
     self::assertNotContains('excluded.php', $files);
+    // Reported paths are project-root-relative.
+    self::assertContains('modules/custom/included.php', array_map(static fn ($r) => $r->file, $results));
 
-    // Cleanup
-    unlink($tmp_dir . '/included.php');
-    unlink($sub_dir . '/excluded.php');
-    rmdir($sub_dir);
-    rmdir($tmp_dir);
+    self::removeTree($tmp_dir);
+  }
+
+  public function testExcludeMatchingIsIndependentOfTheScannedArgument(): void {
+    $tmp_dir = sys_get_temp_dir() . '/php-cc-exclude-arg-' . uniqid();
+    mkdir($tmp_dir . '/web/sites/aaa/files/php', 0755, true);
+    mkdir($tmp_dir . '/web/modules', 0755, true);
+    file_put_contents($tmp_dir . '/web/modules/real.php', '<?php function real(): void {}');
+    file_put_contents($tmp_dir . '/web/sites/aaa/files/php/gen.php', '<?php function gen(): void {}');
+
+    $config = new Config(15, [], ['web/sites/**/files/php/'], ['php'], $tmp_dir);
+
+    $from_root = (new CognitiveAnalyzer($config))->analyze($tmp_dir);
+    $from_web = (new CognitiveAnalyzer($config))->analyze($tmp_dir . '/web');
+    $from_sites = (new CognitiveAnalyzer($config))->analyze($tmp_dir . '/web/sites');
+
+    $names = static fn (array $rs) => array_map(static fn ($r) => basename($r->file), $rs);
+
+    self::assertNotContains('gen.php', $names($from_root));
+    self::assertNotContains('gen.php', $names($from_web));
+    self::assertNotContains('gen.php', $names($from_sites));
+    self::assertContains('real.php', $names($from_root));
+
+    self::removeTree($tmp_dir);
   }
 
   public function testAnalyzeReturnsEmptyForDirectoryWithNoPhpFiles(): void {
@@ -124,6 +152,35 @@ final class CognitiveAnalyzerExtendedTest extends TestCase {
       self::assertIsArray($results);
       self::assertNotEmpty($results);
       self::assertSame('staged_fn', $results[0]->function);
+    } finally {
+      chdir($orig_cwd);
+      exec('rm -rf ' . escapeshellarg($tmp_dir));
+    }
+  }
+
+  public function testDiffModeHonoursExcludePatterns(): void {
+    $tmp_dir = sys_get_temp_dir() . '/php-cc-git-exclude-' . uniqid();
+    mkdir($tmp_dir . '/sites/aaa/files/php', 0755, true);
+    mkdir($tmp_dir . '/modules', 0755, true);
+
+    $orig_cwd = (string) getcwd();
+    chdir($tmp_dir);
+
+    try {
+      exec('git init -q ' . escapeshellarg($tmp_dir));
+      exec('git -C ' . escapeshellarg($tmp_dir) . ' config user.email "test@test.com"');
+      exec('git -C ' . escapeshellarg($tmp_dir) . ' config user.name "Test"');
+
+      file_put_contents($tmp_dir . '/modules/real.php', '<?php function real_fn(): void {}');
+      file_put_contents($tmp_dir . '/sites/aaa/files/php/gen.php', '<?php function generated_fn(): void {}');
+      exec('git -C ' . escapeshellarg($tmp_dir) . ' add -A');
+
+      $config = new Config(15, [], ['**/files/php/'], ['php'], $tmp_dir);
+      $results = (new CognitiveAnalyzer($config))->analyze($tmp_dir, true);
+
+      $functions = array_map(static fn ($r) => $r->function, $results);
+      self::assertContains('real_fn', $functions);
+      self::assertNotContains('generated_fn', $functions);
     } finally {
       chdir($orig_cwd);
       exec('rm -rf ' . escapeshellarg($tmp_dir));

@@ -49,7 +49,6 @@ final class RichConsoleReporter {
       usort($results, static fn (AnalysisResult $a, AnalysisResult $b) => $b->score <=> $a->score);
     }
 
-    $cwd = (string) getcwd();
     $current_file = '';
     $violation_count = 0;
     $function_count = 0;
@@ -74,10 +73,10 @@ final class RichConsoleReporter {
       if (!$sort_by_score && $result->file !== $current_file) {
         $current_file = $result->file;
         $output->writeln('');
-        $output->writeln(self::DIM . '── ' . str_replace($cwd . '/', '', $current_file) . self::RESET);
+        $output->writeln(self::DIM . '── ' . $current_file . self::RESET);
       }
 
-      $this->writeLine($output, $result, $sort_by_score, $cwd);
+      $this->writeLine($output, $result, $sort_by_score);
     }
 
     foreach ($parse_errors as $error) {
@@ -88,12 +87,12 @@ final class RichConsoleReporter {
     $this->writeSummary($output, $violation_count, $function_count, \count($file_set), $threshold);
   }
 
-  private function writeLine(OutputInterface $output, AnalysisResult $result, bool $sort_by_score, string $cwd): void {
+  private function writeLine(OutputInterface $output, AnalysisResult $result, bool $sort_by_score): void {
     $severity = $result->severity();
     $color = self::COLORS[$severity->value];
     $score_fmt = sprintf('[%3d]', $result->score);
     $prefix = $sort_by_score
-      ? self::DIM . str_replace($cwd . '/', '', $result->file) . ':' . self::RESET
+      ? self::DIM . $result->file . ':' . self::RESET
       : '';
 
     if ($result->hasViolation()) {

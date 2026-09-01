@@ -10,11 +10,13 @@ use Symfony\Component\Console\Output\OutputInterface;
 /**
  * Reports results as human-readable console output.
  *
- * Example output:
- *   ✓ UserController.php (max: 12)
- *   ✗ OrderService::processOrder() → 18 (max: 15)
+ * Paths are printed exactly as carried by AnalysisResult — relative to the
+ * configured project root.
  *
- *   2 violations found. Complexity threshold exceeded.
+ * Example output:
+ *   ✗ src/Service/OrderService.php::processOrder → 18 (max: 15) [line 42]
+ *
+ *   1 violation(s) found. Cognitive complexity threshold exceeded.
  */
 final class ConsoleReporter {
 
@@ -44,10 +46,9 @@ final class ConsoleReporter {
 }
 
 $violations++;
-$relative = $this->relativePath($result->file);
 $this->output->writeln(\sprintf(
   '<error> ✗ %s::%s → %d (max: %d) [line %d]</error>',
-  $relative,
+  $result->file,
   $result->function,
   $result->score,
   $result->threshold,
@@ -87,15 +88,6 @@ private function loadBaseline(?string $file): array {
   $data = json_decode($content, true) ?? [];
 
   return $data;
-}
-
-private function relativePath(string $absolute): string {
-  $cwd = getcwd();
-  if ($cwd !== false && str_starts_with($absolute, $cwd)) {
-    return ltrim(substr($absolute, \strlen($cwd)), '/');
-  }
-
-  return $absolute;
 }
 
 }

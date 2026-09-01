@@ -115,17 +115,17 @@ Create a `cognitive.yaml` at the root of your project:
 # Default threshold
 max_complexity: 15
 
-# Per-path overrides
+# Per-path threshold overrides (glob patterns, most specific wins)
 paths:
   src/Controller/: 10
   src/Service/: 12
   tests/: 20
 
-# Excluded paths
+# Paths to exclude from analysis (glob patterns)
 exclude:
   - vendor/
-  - cache/
-  - legacy/
+  - "**/files/php/" # Drupal compiled-Twig cache, any site
+  - "**/files/styles/"
 
 # File extensions to scan (default: php)
 # CLI --ext overrides this list
@@ -135,49 +135,41 @@ extensions:
   - inc
   - theme
   - install
+
+# Optional: override the project root (defaults to this file's directory)
+# root: ..
 ```
 
 ### How `exclude:` and `paths:` are matched
 
-Both `exclude:` and the `paths:` keys are **prefixes matched against each file's path
-relative to the argument you pass to `check` / `analyse`** — *not* relative to the
-project root.
+> **v2 change.** In v1 these keys were matched relative to the path you passed on
+> the CLI. As of **v2.0.0** they are matched relative to the **project root** and
+> support glob wildcards. See [`MIGRATION.md`](MIGRATION.md).
 
-So if you run:
+- **Project root** = the directory containing `cognitive.yaml` (or the `root:`
+  key, or the current directory when no config file is used). Every pattern and
+  every reported path is relative to it, so `check web/`, `check web/sites/` and
+  `check .` all match config the same way — the CLI argument only narrows what is
+  walked.
+- **Anchored.** `tests/` matches the top-level `tests/` directory, not
+  `vendor/phpunit/phpunit/tests/`. Prefix with `**/` to match at any depth.
+- **Wildcards:** `*` (within a path segment), `**` (spans directories),
+  `?` (one character). Naming a directory covers its whole subtree.
 
-```bash
-vendor/bin/cognitive-complexity check web/sites/ --config=cognitive.yaml
-```
-
-a file on disk at `web/sites/foo/files/php/twig_xxx.php` is seen by the matcher as
-`foo/files/php/twig_xxx.php`. Your patterns must start from there:
-
-| Command | Correct `exclude:` entry | Wrong (never matches) |
+| Pattern | Matches | Does not match |
 | --- | --- | --- |
-| `check web/` | `sites/foo/files/php/` | `web/sites/foo/files/php/` |
-| `check web/sites/` | `foo/files/php/` | `sites/foo/files/php/` |
-| `check web/sites/foo/` | `files/php/` | `sites/foo/files/php/` |
+| `vendor/` | `vendor/autoload.php` | `app/vendor/x.php` |
+| `**/files/php/` | `web/sites/aaa/files/php/twig/x.php` | `web/sites/aaa/files/phpstan.php` |
+| `src/*/Legacy/` | `src/Billing/Legacy/X.php` | `src/Billing/Sub/Legacy/X.php` |
+| `**/*.blade.php` | `resources/views/home.blade.php` | — |
 
-An `exclude:` entry with a `/` in it matches that sub-path **anywhere** in the
-relative path, so a single suffix covers every site in a multi-site tree:
+**Notes:**
 
-```yaml
-# Run as: check web/sites/  — excludes the compiled-Twig cache of ALL sites
-exclude:
-  - files/php/
-  - files/styles/
-```
-
-**Limitations:**
-
-- **No globs.** `*`, `**`, `?` are treated literally. Only plain directory paths work.
-- **No leading `./`** — write `files/php/`, not `./files/php/`.
-- **`--diff` mode ignores `exclude:`.** When analysing only git-modified files, the
-  exclusion list is not applied; filter those paths in your hook/CI instead.
-- **`--config` is resolved relative to the current working directory.** If the file
-  is not found (or a key is misspelled, e.g. `excludes:`), the tool silently falls
-  back to defaults with **no exclusions and no warning**. Prefer an absolute path in
-  build scripts.
+- `--diff` mode **honours** `exclude:` (it did not in v1).
+- A `--config` path that does not exist is now an **error** (exit code 2), not a
+  silent fallback to defaults.
+- Reported paths (console, `--format=json`, `--format=gitlab`) and baseline file
+  keys are project-root-relative. Regenerate baselines when upgrading from v1.
 
 ---
 

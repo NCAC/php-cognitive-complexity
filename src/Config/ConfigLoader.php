@@ -18,45 +18,98 @@ use Symfony\Component\Yaml\Yaml;
  *   tests/: 20
  * exclude:
  *   - vendor/
- *   - cache/
+ *   - "**\/files/php/"
  * extensions:
  *   - php
  *   - module
  *   - inc
  *
- * Both `paths:` keys and `exclude:` entries are prefixes matched against each
- * file's path RELATIVE to the analysed argument (the path given to `check` /
- * `analyse`), not relative to the project root. Plain directory paths only —
- * no globs. Note: `--diff` mode does not apply `exclude:`.
+ * Both `paths:` keys and `exclude:` entries are glob patterns matched against
+ * each file's path RELATIVE TO THE PROJECT ROOT — the directory that holds the
+ * config file, or the `root:` key if given, or the current working directory
+ * when no config file is used. The path passed to `check` / `analyse` only
+ * narrows what is walked; it never changes how patterns match.
+ * See docs/rfc/0001-project-relative-path-matching.md.
  */
 final class ConfigLoader {
 
   /**
    * Load config from a YAML file (or return defaults if no file given).
+   *
+   * @throws ConfigException When an explicit $config_file does not exist or the
+   *                         YAML cannot be parsed.
    */
   public static function load(?string $config_file, int $default_max = 15): Config {
-    $config_file = self::resolveConfigFile($config_file);
+    $explicit = $config_file !== null;
+    $config_file = self::resolveConfigFile($config_file, $explicit);
 
     if ($config_file === null) {
-      return new Config($default_max);
+      return new Config($default_max, [], [], Config::DEFAULT_EXTENSIONS, self::cwd());
     }
 
-    /** @var array<string, mixed> $data */
-    $data = Yaml::parseFile($config_file);
+    try {
+      /** @var array<string, mixed> $data */
+      $data = Yaml::parseFile($config_file) ?? [];
+    } catch (\Throwable $e) {
+      throw new ConfigException(
+        \sprintf('Cannot parse config file "%s": %s', $config_file, $e->getMessage()),
+        0,
+        $e,
+      );
+    }
 
     $max = isset($data['max_complexity']) ? (int) $data['max_complexity'] : $default_max;
+    $project_root = self::resolveProjectRoot($data, \dirname($config_file));
 
-    return new Config($max, self::parsePathThresholds($data), self::parseExcludedPaths($data), self::parseExtensions($data));
+    return new Config(
+      $max,
+      self::parsePathThresholds($data),
+      self::parseExcludedPaths($data),
+      self::parseExtensions($data),
+      $project_root,
+    );
   }
 
-  private static function resolveConfigFile(?string $config_file): ?string {
+  private static function resolveConfigFile(?string $config_file, bool $explicit): ?string {
     if ($config_file !== null) {
-      return file_exists($config_file) ? $config_file : null;
+      if (!is_file($config_file)) {
+        if ($explicit) {
+          throw new ConfigException(\sprintf('Config file not found: "%s"', $config_file));
+        }
+
+        return null;
+      }
+
+      return realpath($config_file) ?: $config_file;
     }
 
-    $candidate = (getcwd() ?: '') . '/cognitive.yaml';
+    $candidate = self::cwd() . '/cognitive.yaml';
 
-    return file_exists($candidate) ? $candidate : null;
+    return is_file($candidate) ? $candidate : null;
+  }
+
+  /**
+   * @param array<string, mixed> $data
+   */
+  private static function resolveProjectRoot(array $data, string $config_dir): string {
+    if (isset($data['root']) && \is_string($data['root']) && $data['root'] !== '') {
+      $root = $data['root'];
+      if (!self::isAbsolute($root)) {
+        $root = $config_dir . '/' . $root;
+      }
+
+      return realpath($root) ?: $root;
+    }
+
+    return realpath($config_dir) ?: $config_dir;
+  }
+
+  private static function isAbsolute(string $path): bool {
+    return str_starts_with($path, '/') || preg_match('#^[A-Za-z]:[\\\\/]#', $path) === 1;
+  }
+
+  private static function cwd(): string {
+    return getcwd() ?: '.';
   }
 
   /**

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace NCAC\CognitiveComplexity\CLI;
 
 use NCAC\CognitiveComplexity\Analyzer\CognitiveAnalyzer;
-use NCAC\CognitiveComplexity\Config\Config;
+use NCAC\CognitiveComplexity\Config\ConfigException;
 use NCAC\CognitiveComplexity\Config\ConfigLoader;
 use NCAC\CognitiveComplexity\Reporter\RichConsoleReporter;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -54,9 +54,16 @@ final class AnalyseCommand extends Command {
 
     /** @var string $ext_option */
     $ext_option = $input->getOption('ext');
-    $extensions = array_filter(array_map('trim', explode(',', $ext_option)));
+    $extensions = array_values(array_filter(array_map('trim', explode(',', $ext_option))));
 
-    $config = $this->buildConfig($config_file, $max, array_values($extensions));
+    try {
+      $config = ConfigLoader::load($config_file, $max)->withExtensions($extensions);
+    } catch (ConfigException $e) {
+      $output->writeln('<error>' . $e->getMessage() . '</error>');
+
+      return Command::INVALID;
+    }
+
     $analyzer = new CognitiveAnalyzer($config);
     $results = $analyzer->analyze($path);
 
@@ -64,20 +71,6 @@ final class AnalyseCommand extends Command {
     $reporter->report($output, $results, $show_all, $sort_by_score);
 
     return Command::SUCCESS;
-  }
-
-  /**
-   * @param list<string> $extensions
-   */
-  private function buildConfig(?string $config_file, int $max, array $extensions): Config {
-    $base = ConfigLoader::load($config_file, $max);
-
-    return new Config(
-      $base->getDefaultMax(),
-      [],
-      $base->getExcludedPaths(),
-      $extensions,
-    );
   }
 
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace NCAC\CognitiveComplexity\CLI;
 
 use NCAC\CognitiveComplexity\Analyzer\CognitiveAnalyzer;
+use NCAC\CognitiveComplexity\Config\ConfigException;
 use NCAC\CognitiveComplexity\Config\ConfigLoader;
 use NCAC\CognitiveComplexity\Reporter\ConsoleReporter;
 use NCAC\CognitiveComplexity\Reporter\GitlabReporter;
@@ -52,7 +53,13 @@ final class CheckCommand extends Command {
     /** @var string|null $baseline */
     $baseline = $input->getOption('baseline');
 
-    $config = ConfigLoader::load($config_file, $max);
+    try {
+      $config = ConfigLoader::load($config_file, $max);
+    } catch (ConfigException $e) {
+      $output->writeln('<error>' . $e->getMessage() . '</error>');
+
+      return Command::INVALID;
+    }
 
     /** @var string|null $ext_option */
     $ext_option = $input->getOption('ext');

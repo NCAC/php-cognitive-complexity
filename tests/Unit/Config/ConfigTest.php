@@ -40,7 +40,34 @@ final class ConfigTest extends TestCase {
 
   public function testExcludedPaths(): void {
     $config = new Config(15, [], ['vendor/', 'cache/']);
-    self::assertSame(['vendor/', 'cache/'], $config->getExcludedPaths());
+    self::assertSame(['vendor/', 'cache/'], $config->getExcludePatterns());
+  }
+
+  public function testIsExcludedMatchesGlobPatterns(): void {
+    $config = new Config(15, [], ['vendor/', '**/files/php/'], ['php'], '/project');
+
+    self::assertTrue($config->isExcluded('vendor/autoload.php'));
+    self::assertTrue($config->isExcluded('web/sites/aaa/files/php/twig/x.php'));
+    self::assertFalse($config->isExcluded('app/vendor-lib/x.php'));
+    self::assertFalse($config->isExcluded('web/sites/aaa/files/phpstan.php'));
+  }
+
+  public function testGlobThresholdMostSpecificWins(): void {
+    $config = new Config(15, [
+      '**/Legacy/' => 40,
+      'src/' => 20,
+      'src/Domain/Legacy/' => 25,
+    ]);
+
+    self::assertSame(25, $config->getThresholdForPath('src/Domain/Legacy/Foo.php'));
+    self::assertSame(20, $config->getThresholdForPath('src/Domain/Order.php'));
+    self::assertSame(40, $config->getThresholdForPath('tests/Legacy/Bar.php'));
+    self::assertSame(15, $config->getThresholdForPath('bin/console.php'));
+  }
+
+  public function testGetProjectRoot(): void {
+    $config = new Config(15, [], [], ['php'], '/srv/app');
+    self::assertSame('/srv/app', $config->getProjectRoot());
   }
 
   public function testGetExtensionsDefaultsToPhp(): void {
@@ -60,7 +87,7 @@ final class ConfigTest extends TestCase {
     self::assertSame(['php', 'module', 'inc'], $updated->getExtensions());
     self::assertSame(['php'], $original->getExtensions());
     self::assertSame(15, $updated->getDefaultMax());
-    self::assertSame(['vendor/'], $updated->getExcludedPaths());
+    self::assertSame(['vendor/'], $updated->getExcludePatterns());
     self::assertSame(10, $updated->getThresholdForPath('src/Foo.php'));
   }
 

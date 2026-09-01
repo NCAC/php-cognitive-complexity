@@ -4,22 +4,36 @@
 # Default complexity threshold for all files
 max_complexity: 15
 
-# Per-path overrides (most specific prefix wins).
-# Keys are prefixes matched against each file's path RELATIVE to the argument
-# passed to `check` / `analyse` — not relative to the project root.
+# Per-path threshold overrides.
+# Keys are glob patterns matched against each file's path RELATIVE TO THE PROJECT
+# ROOT (the directory holding this file, or `root:` below). The most specific
+# pattern wins — the one with the most literal (non-wildcard) characters.
 paths:
   src/Controller/: 10
   src/Service/: 12
   tests/: 20
 
 # Paths to exclude from analysis.
-# Same matching rule as `paths:` above: relative to the analysed argument, not the
-# project root. Plain directory paths only — no globs (`*`, `**`, `?`), no leading `./`.
-# An entry containing `/` matches that sub-path anywhere in the relative path.
-# Example: run as `check web/sites/` -> `files/php/` excludes every site's Twig cache.
-# Note: `--diff` mode does not apply this list.
+# Glob patterns, project-root-relative, anchored:
+#   *   matches within a path segment
+#   **  spans directories (use a leading **/ to match at any depth)
+#   ?   matches a single character
+# Naming a directory excludes its whole subtree. `--diff` mode honours this list.
 exclude:
   - vendor/
   - var/
-  - cache/
-  - legacy/
+  - "**/cache/"
+  - "**/files/php/"    # Drupal: compiled-Twig / PHP storage, every site
+  - "**/files/styles/" # Drupal: image derivatives
+
+# File extensions to scan (default: php). CLI --ext overrides this list.
+extensions:
+  - php
+  - module
+  - inc
+  - theme
+  - install
+
+# Optional: override the project root. Relative values are resolved against the
+# directory containing this file. Defaults to that directory.
+# root: ..

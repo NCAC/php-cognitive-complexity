@@ -115,10 +115,12 @@ final class CheckCommandTest extends TestCase {
   }
 
   public function testBaselineOptionSuppressesKnownViolations(): void {
-    // First, generate a baseline from the high complexity file
+    // First, generate a baseline from the high complexity file. The baseline
+    // keys must be project-root-relative, exactly as the check command below
+    // produces them (no --config -> project root is the current directory).
     $baseline = [];
     $results = (new \NCAC\CognitiveComplexity\Analyzer\CognitiveAnalyzer(
-      new \NCAC\CognitiveComplexity\Config\Config(1)
+      new \NCAC\CognitiveComplexity\Config\Config(1, [], [], ['php'], (string) getcwd())
     ))->analyze($this->fixturesDir . '/high_complexity.php');
     foreach ($results as $r) {
       $baseline[$r->file][$r->function] = $r->score;

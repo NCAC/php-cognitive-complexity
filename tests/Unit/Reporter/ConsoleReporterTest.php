@@ -85,19 +85,17 @@ final class ConsoleReporterTest extends TestCase {
     self::assertTrue($has_violations);
   }
 
-  public function testReportShowsRelativePathWhenFileIsUnderCwd(): void {
-    $cwd = (string) getcwd();
-    $file = $cwd . '/src/SomeClass.php';
+  public function testReportPrintsFilePathVerbatim(): void {
+    // The analyzer hands the reporter project-root-relative paths; the reporter
+    // prints them unchanged (no CWD rewriting).
     $results = [
-      new AnalysisResult($file, 'myMethod', score: 20, threshold: 15, line: 5),
+      new AnalysisResult('src/SomeClass.php', 'myMethod', score: 20, threshold: 15, line: 5),
     ];
 
     $this->reporter->report($results);
     $out = $this->output->fetch();
 
-    // Should show relative path, not absolute
-    self::assertStringNotContainsString($cwd, $out);
-    self::assertStringContainsString('src/SomeClass.php', $out);
+    self::assertStringContainsString(' ✗ src/SomeClass.php::myMethod → 20 (max: 15) [line 5]', $out);
   }
 
   public function testReportWithCorruptBaselineFileIgnoresBaseline(): void {
