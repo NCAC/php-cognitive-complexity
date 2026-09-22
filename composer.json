@@ -30,7 +30,7 @@
   "require": {
     "php": "^8.2",
     "nikic/php-parser": "^5.0",
-    "revolt/event-loop": ">=1.0.0 <1.0.7",
+    "revolt/event-loop": "^1.0",
     "symfony/console": "^6.0 || ^7.0",
     "symfony/finder": "^6.0 || ^7.0",
     "symfony/yaml": "^6.0 || ^7.0"
