@@ -1,5 +1,19 @@
 # Changelog
 
+## [2.0.1](https://github.com/ncac/php-cognitive-complexity/compare/v2.0.0...v2.0.1) (2026-09-22)
+
+
+### chore
+
+* **deps:** bump actions/checkout from 4.4.0 to 7.0.1 ([](https://github.com/ncac/php-cognitive-complexity/commit/1617c131d190e26f01781c90da40183d9e05a7c1))
+* **deps:** bump codecov/codecov-action from 5.5.5 to 7.1.1 ([](https://github.com/ncac/php-cognitive-complexity/commit/a1d30976c1ae7a95c06427a0c375f227fe99f925))
+* **deps:** unpin revolt/event-loop upper bound, update to v1.0.9 ([](https://github.com/ncac/php-cognitive-complexity/commit/d41dade29e23ce97c5df0fd76a60e0d94f3c3706)), closes [revoltphp/event-loop#105](https://github.com/revoltphp/event-loop/issues/105)
+
+
+### ci
+
+* pin actions to SHA, add SECURITY.md and dependabot ([](https://github.com/ncac/php-cognitive-complexity/commit/9bb60e58d95616a463b73b4b4b800183ae7b25ce))
+
 # [2.0.0](https://github.com/ncac/php-cognitive-complexity/compare/v1.2.0...v2.0.0) (2026-09-01)
 
 
