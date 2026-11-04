@@ -66,7 +66,6 @@ final class AnalysisResultTest extends TestCase {
   // severity()
   // -------------------------------------------------------------------------
 
-
   #[DataProvider('severityProvider')]
   public function testSeverity(int $score, Severity $expected): void {
     $result = new AnalysisResult('f.php', 'fn', score: $score, threshold: 15, line: 1);

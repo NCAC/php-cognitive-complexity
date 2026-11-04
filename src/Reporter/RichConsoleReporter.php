@@ -23,10 +23,10 @@ final class RichConsoleReporter {
 
   /** ANSI colour codes indexed by Severity */
   private const COLORS = [
-    Severity::Ok->value       => "\033[0;32m",  // green
-    Severity::Minor->value    => "\033[0;33m",  // yellow
+    Severity::Ok->value => "\033[0;32m",  // green
+    Severity::Minor->value => "\033[0;33m",  // yellow
     Severity::Moderate->value => "\033[0;33m",  // yellow-orange
-    Severity::High->value     => "\033[0;31m",  // red
+    Severity::High->value => "\033[0;31m",  // red
     Severity::Critical->value => "\033[1;31m",  // bold red
   ];
 
@@ -90,23 +90,31 @@ final class RichConsoleReporter {
   private function writeLine(OutputInterface $output, AnalysisResult $result, bool $sort_by_score): void {
     $severity = $result->severity();
     $color = self::COLORS[$severity->value];
-    $score_fmt = sprintf('[%3d]', $result->score);
+    $score_fmt = \sprintf('[%3d]', $result->score);
     $prefix = $sort_by_score
       ? self::DIM . $result->file . ':' . self::RESET
       : '';
 
     if ($result->hasViolation()) {
-      $output->writeln(sprintf(
+      $output->writeln(\sprintf(
         '  %s%s%s  %s%s:%d — %s',
-        $color, $score_fmt, self::RESET,
-        $prefix, $result->function, $result->line,
+        $color,
+        $score_fmt,
+        self::RESET,
+        $prefix,
+        $result->function,
+        $result->line,
         $severity->label(),
       ));
     } else {
-      $output->writeln(sprintf(
+      $output->writeln(\sprintf(
         '  %s%s%s  %s%s:%d',
-        $color, $score_fmt, self::RESET,
-        $prefix, $result->function, $result->line,
+        $color,
+        $score_fmt,
+        self::RESET,
+        $prefix,
+        $result->function,
+        $result->line,
       ));
     }
   }

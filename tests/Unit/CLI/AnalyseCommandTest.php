@@ -63,7 +63,7 @@ final class AnalyseCommandTest extends TestCase {
 
   public function testShowAllDisplaysAllFunctions(): void {
     $this->tester->execute([
-      'path'  => $this->fixturesDir . '/simple.php',
+      'path' => $this->fixturesDir . '/simple.php',
       '--all' => true,
     ]);
     $output = $this->tester->getDisplay();
@@ -72,8 +72,8 @@ final class AnalyseCommandTest extends TestCase {
 
   public function testSortByScoreOption(): void {
     $this->tester->execute([
-      'path'   => $this->fixturesDir . '/high_complexity.php',
-      '--all'  => true,
+      'path' => $this->fixturesDir . '/high_complexity.php',
+      '--all' => true,
       '--sort' => 'score',
     ]);
     self::assertSame(Command::SUCCESS, $this->tester->getStatusCode());
@@ -82,7 +82,7 @@ final class AnalyseCommandTest extends TestCase {
   public function testExtOptionFiltersFiles(): void {
     // Analysing a .php file with --ext=module should find nothing
     $this->tester->execute([
-      'path'  => $this->fixturesDir,
+      'path' => $this->fixturesDir,
       '--ext' => 'module',
     ]);
     $output = $this->tester->getDisplay();
@@ -91,7 +91,7 @@ final class AnalyseCommandTest extends TestCase {
 
   public function testViolationAppearsInOutput(): void {
     $this->tester->execute([
-      'path'  => $this->fixturesDir . '/high_complexity.php',
+      'path' => $this->fixturesDir . '/high_complexity.php',
       '--max' => '1',
     ]);
     $output = $this->tester->getDisplay();

@@ -168,8 +168,8 @@ final class CheckCommandTest extends TestCase {
       return $a;
     }
     PHP;
-    file_put_contents($tmp . '/src/real.php', sprintf($heavy, 'realFn'));
-    file_put_contents($tmp . '/web/sites/aaa/files/php/gen.php', sprintf($heavy, 'generatedFn'));
+    file_put_contents($tmp . '/src/real.php', \sprintf($heavy, 'realFn'));
+    file_put_contents($tmp . '/web/sites/aaa/files/php/gen.php', \sprintf($heavy, 'generatedFn'));
     file_put_contents($tmp . '/cognitive.yaml', "max_complexity: 1\nexclude:\n  - \"**/files/php/\"\n");
 
     $this->tester->execute([
