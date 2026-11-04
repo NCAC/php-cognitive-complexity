@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.0.2](https://github.com/ncac/php-cognitive-complexity/compare/v2.0.1...v2.0.2) (2026-11-04)
+
+
+### chore
+
+* **deps:** bump shivammathur/setup-php from 2.37.2 to 2.40.0 ([](https://github.com/ncac/php-cognitive-complexity/commit/cef2c5d81c092070ecb5339c425860a71eeb1b21))
+* upgrade ncac/phpcs-standard to 5.1.0 and adapt format tools ([](https://github.com/ncac/php-cognitive-complexity/commit/6e16daa199523d8042bc23c05a21e2a6dbf17a7c))
+
 ## [2.0.1](https://github.com/ncac/php-cognitive-complexity/compare/v2.0.0...v2.0.1) (2026-09-22)
 
 
