@@ -8,7 +8,6 @@ namespace NCAC\CognitiveComplexity\Analyzer;
  * Severity levels for a cognitive complexity result.
  */
 enum Severity: string {
-
   case Ok = 'ok';
   case Minor = 'minor';
   case Moderate = 'moderate';
@@ -18,5 +17,4 @@ enum Severity: string {
   public function label(): string {
     return $this->value;
   }
-
 }

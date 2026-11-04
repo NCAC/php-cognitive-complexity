@@ -32,10 +32,10 @@
         <exec executable="vendor/bin/psalm" passthru="true" checkreturn="true" />
     </target>
 
-    <target name="cs" description="Check code style with PHPCS using NCAC standard">
-        <echo msg="Checking code style with PHPCS (NCAC standard)..." />
-        <exec executable="vendor/bin/phpcs" passthru="true" checkreturn="true">
-            <arg line="--standard=NCAC src/ tests/" />
+    <target name="cs" description="Check code style with ncac-format (phpcs.xml)">
+        <echo msg="Checking code style with ncac-format --check (phpcs.xml)..." />
+        <exec executable="vendor/bin/ncac-format" passthru="true" checkreturn="true">
+            <arg value="--check" />
         </exec>
     </target>
 

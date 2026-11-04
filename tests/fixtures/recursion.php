@@ -32,10 +32,10 @@ function sum_recursive(array $items): int {
 // ── Method recursion ─────────────────────────────────────────────────────────
 class Tree {
 
-/**
-             * @param list<mixed> $node
-             * @return list<mixed>
-             */
+  /**
+   * @param list<mixed> $node
+   * @return list<mixed>
+   */
   public function flatten(array $node): array {
     $result = [];
     foreach ($node as $child) {      // +1 (nesting=0) → 1

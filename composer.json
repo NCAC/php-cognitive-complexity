@@ -37,7 +37,7 @@
   },
   "require-dev": {
     "friendsofphp/php-cs-fixer": "3.64.*",
-    "ncac/phpcs-standard": "^4.1",
+    "ncac/phpcs-standard": "^5.1",
     "phing/phing": "^3.1",
     "phpunit/phpunit": "^10.0 || ^11.0",
     "squizlabs/php_codesniffer": "^3.7 || ^4.0",
@@ -70,9 +70,9 @@
     "test": "phpunit",
     "test-coverage": "XDEBUG_MODE=coverage phpunit --coverage-html coverage-html --coverage-clover coverage.xml",
     "psalm": "psalm",
-    "cs-check": "@php scripts/ncac-phpcs-fix.php --check",
-    "cs-fix": "@php scripts/ncac-phpcs-fix.php",
-    "cs-fix:dry": "@php scripts/ncac-phpcs-fix.php --dry-run",
+    "cs-check": "ncac-format --check",
+    "cs-fix": "ncac-format",
+    "cs-fix:dry": "ncac-format --dry-run",
     "check": [
       "@psalm",
       "@cs-check",
@@ -83,8 +83,9 @@
     "test": "Run PHPUnit test suite",
     "test-coverage": "Run PHPUnit with code coverage reports",
     "psalm": "Run Psalm static analysis",
-    "cs": "Check code style with PHPCS",
-    "cs-fix": "Auto-fix code style with ncac-format",
+    "cs-check": "Check code style with ncac-format --check (PHPCS, phpcs.xml)",
+    "cs-fix": "Auto-fix code style with ncac-format (PHP-CS-Fixer + PHPCBF, then PHPCS)",
+    "cs-fix:dry": "Preview ncac-format fixes without writing files",
     "check": "Run all quality checks (psalm + cs + tests)"
   }
 }
