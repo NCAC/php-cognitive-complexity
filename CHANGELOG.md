@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.0.3](https://github.com/ncac/php-cognitive-complexity/compare/v2.0.2...v2.0.3) (2026-11-04)
+
+
+### chore
+
+* **docker:** install GitHub CLI and persist its config ([](https://github.com/ncac/php-cognitive-complexity/commit/15610f83ac2e2c1a50ff9bc708a0f5dbc9e05c5c))
+* **php:** bump PHP to 8.2.35 (security) ([](https://github.com/ncac/php-cognitive-complexity/commit/838490ac571b870e7490463a0c00ce0697df6bb5))
+
 ## [2.0.2](https://github.com/ncac/php-cognitive-complexity/compare/v2.0.1...v2.0.2) (2026-11-04)
 
 
