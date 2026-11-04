@@ -53,7 +53,7 @@ cat > "$ENV_FILE" << EOF
 
 # Application configuration
 APP_NAME=ncac-php-cognitive-complexity
-PHP_VERSION=8.2.30
+PHP_VERSION=8.2.35
 APP_ROOT=/workspace
 
 # WSL2 and XDebug configuration
@@ -68,7 +68,7 @@ echo "✅ Environment file generated successfully!"
 echo ""
 echo "📋 Generated variables:"
 echo "   APP_NAME: ncac-php-cognitive-complexity"
-echo "   PHP_VERSION: 8.2.30"
+echo "   PHP_VERSION: 8.2.35"
 echo "   APP_ROOT: /workspace"
 echo "   WSL_IP: $WSL_IP"
 echo "   XDEBUG_PORT: 9048"
